@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Beaker, Settings, AlertCircle, ArrowRight, Download, Box } from 'lucide-react';
+import { Beaker, Settings, AlertCircle, ArrowRight, Download, Box, Copy, Check } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -7,6 +7,7 @@ import { Stage, OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 import iconeRotacao from './assets/icone-rotacao.png';
+
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
   return (
@@ -63,6 +64,7 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [copiado, setCopiado] = useState(false); // Estado para controlar o botão de cópia
 
   const parseBraille = (text) => {
     if (!text.trim()) {
@@ -145,6 +147,21 @@ export default function App() {
     }
   };
 
+  // ----- NOVA FUNÇÃO: Gera a string unicode baseado nos pontos -----
+  const brailleUnicodeText = cells.map(cell => {
+    let code = 10240; // Base do Braille na Tabela Unicode (U+2800)
+    cell.dots.forEach(d => {
+      if (d >= 1 && d <= 6) code += Math.pow(2, d - 1);
+    });
+    return String.fromCharCode(code);
+  }).join('');
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(brailleUnicodeText);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000); // Reseta o botão após 2s
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -167,18 +184,19 @@ export default function App() {
                 Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
               </a>.
             </p>
-<p className="text-sm border-l-4 border-blue-500 pl-3 bg-slate-50 p-2 rounded-r">
-  Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
-  <a 
-    href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" 
-    target="_blank" 
-    rel="noopener noreferrer" 
-    className="hover:underline cursor-pointer text-inherit"
-  >
-    <strong>André Vinnicios S. Gaito</strong>
-  </a>{' '}
-  para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.
-</p>          </div>
+            <p className="text-sm border-l-4 border-blue-500 pl-3 bg-slate-50 p-2 rounded-r">
+              Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
+              <a 
+                href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="hover:underline cursor-pointer text-inherit"
+              >
+                <strong>André Vinnicios S. Gaito</strong>
+              </a>{' '}
+              para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.
+            </p>
+          </div>
         </div>
 
         {/* Formulário */}
@@ -261,7 +279,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Visualização 2D com Rodapé Restaurado */}
+        {/* Visualização 2D com Rodapé Restaurado e Novo Bloco de Cópia */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
           
@@ -276,6 +294,36 @@ export default function App() {
                 <p>Largura estimada na impressão (Extrusão a 6.5mm/cela): <span className="font-bold text-slate-700">~{(cells.length * 6.5).toFixed(1)} mm</span></p>
                 <p>Total: <span className="font-bold text-slate-700">{cells.length}</span> celas em Braille</p>
               </div>
+
+              {/* ---------------- NOVA FUNÇÃO: Caixa de Texto Copiável ---------------- */}
+              <div className="mt-6 flex flex-col md:flex-row gap-4">
+                <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
+                  <div>
+                    <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
+                    <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem]">
+                      {brailleUnicodeText}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCopy}
+                    className="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-md flex items-center justify-center space-x-2 transition-colors"
+                  >
+                    {copiado ? (
+                      <>
+                        <Check className="w-4 h-4 text-green-600" />
+                        <span className="text-green-700">Copiado!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4" />
+                        <span>Copiar Texto Braille</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+              {/* ---------------------------------------------------------------------- */}
+
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg p-12">Nenhuma fórmula digitada.</div>
