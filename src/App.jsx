@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Beaker, Settings, AlertCircle, ArrowRight, Download, Box, Copy, Check } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
+import { Analytics } from '@vercel/analytics/react';
 
 import { Canvas } from '@react-three/fiber';
 import { Stage, OrbitControls } from '@react-three/drei';
@@ -331,6 +332,7 @@ export default function App() {
         </div>
         
       </div>
+      <Analytics />
     </div>
   );
 }
