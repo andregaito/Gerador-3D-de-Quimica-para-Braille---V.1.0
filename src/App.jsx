@@ -25,7 +25,6 @@ const BRAILLE_MAP = {
     'k': [1, 3], 'l': [1, 2, 3], 'm': [1, 3, 4], 'n': [1, 3, 4, 5], 'o': [1, 3, 5],
     'p': [1, 2, 3, 4], 'q': [1, 2, 3, 4, 5], 'r': [1, 2, 3, 5], 's': [2, 3, 4], 't': [2, 3, 4, 5],
     'u': [1, 3, 6], 'v': [1, 2, 3, 6], 'w': [2, 4, 5, 6], 'x': [1, 3, 4, 6], 'y': [1, 3, 4, 5, 6], 'z': [1, 3, 5, 6],
-    // Acentuação e Cedilha (Português)
     'á': [1, 2, 3, 5, 6], 'à': [1, 2, 3, 4, 6], 'â': [1, 6], 'ã': [3, 4, 5],
     'é': [1, 2, 3, 4, 5, 6], 'ê': [1, 2, 6],
     'í': [3, 4],
@@ -41,7 +40,11 @@ const BRAILLE_MAP = {
     '1': [1], '2': [1, 2], '3': [1, 4], '4': [1, 4, 5], '5': [1, 5],
     '6': [1, 2, 4], '7': [1, 2, 4, 5], '8': [1, 2, 5], '9': [2, 4], '0': [2, 4, 5]
   },
-  symbols: { '(': [1, 2, 6], ')': [3, 4, 5], '[': [1, 2, 3, 5, 6], ']': [2, 3, 4, 5, 6] },
+  // ADICIONADO: Ponto final e outras pontuações básicas
+  symbols: { 
+    '(': [1, 2, 6], ')': [3, 4, 5], '[': [1, 2, 3, 5, 6], ']': [2, 3, 4, 5, 6],
+    '.': [3], ',': [2], ';': [2, 3], ':': [2, 5], '!': [2, 3, 5], '?': [2, 6]
+  },
   chargeIndicator: [5], numberSign: [3, 4, 5, 6], plus: [2, 3, 5], minus: [3, 6]
 };
 
@@ -80,13 +83,12 @@ export default function App() {
     }
     
     const result = [];
-    const normalizedText = text.replace(/\r/g, ''); // Remove Carriage Returns para consistência
+    const normalizedText = text.replace(/\r/g, ''); 
     const chargeRegex = /\s*([+-]\d*|\d+[+-])$/;
     
     let baseStr = normalizedText; 
     let chargeStr = "";
 
-    // Protege textos contínuos (com enter) de serem interpretados pelo regex químico acidentalmente
     if (!normalizedText.includes('\n')) {
       const match = normalizedText.trim().match(chargeRegex);
       if (match) { 
@@ -106,11 +108,9 @@ export default function App() {
         continue;
       }
 
-      // Validação aprimorada para contemplar todo o alfabeto latino acentuado
       const isLetter = /[a-zA-ZáàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(char);
 
       if (isLetter) {
-        // Se a letra não for igual à sua forma minúscula, ela é Maiúscula
         if (char !== char.toLowerCase()) {
           result.push({ dots: BRAILLE_MAP.uppercaseIndicator, label: '⠨', description: 'Maiúscula' });
         }
@@ -185,7 +185,7 @@ export default function App() {
   const brailleUnicodeText = cells.map(cell => {
     if (cell.isNewline) return '\n';
     
-    let code = 10240; // Base Braille Tabela Unicode
+    let code = 10240; 
     if (cell.dots) {
       cell.dots.forEach(d => {
         if (d >= 1 && d <= 6) code += Math.pow(2, d - 1);
@@ -199,6 +199,9 @@ export default function App() {
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000); 
   };
+
+  // Calcula apenas as celas físicas para não contar \n como milímetros
+  const celasFisicas = cells.filter(c => !c.isNewline);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
@@ -242,7 +245,6 @@ export default function App() {
               <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
                 Digite a fórmula do Íon, Composto Químico ou Texto
               </label>
-              {/* O INPUT FOI TROCADO PARA TEXTAREA PARA PERMITIR PARÁGRAFOS (ENTER) */}
               <textarea
                 id="ionInput" 
                 value={input}
@@ -324,23 +326,20 @@ export default function App() {
             <div>
               <div className="flex flex-wrap items-start bg-slate-100 p-6 rounded-lg border border-slate-200 overflow-x-auto min-h-[180px]">
                 {cells.map((cell, index) => {
-                  // Aqui interpretamos o comando de parágrafo gerando uma quebra 100% (w-full) visualmente na div Flex
                   if (cell.isNewline) return <div key={`nl-${index}`} className="w-full h-4"></div>;
-                  
                   return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
                 })}
               </div>
               
               <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
-                <p>Largura estimada na impressão (Extrusão a 6.5mm/cela): <span className="font-bold text-slate-700">~{(cells.length * 6.5).toFixed(1)} mm</span></p>
-                <p>Total: <span className="font-bold text-slate-700">{cells.length}</span> celas em Braille</p>
+                <p>Largura estimada na impressão (Extrusão a 6.5mm/cela): <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
+                <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas em Braille</p>
               </div>
 
               <div className="mt-6 flex flex-col md:flex-row gap-4">
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
                   <div>
                     <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
-                    {/* A classe whitespace-pre-wrap permite que o Unicode obedeça o \n do Enter corretamente. */}
                     <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap">
                       {brailleUnicodeText}
                     </div>
