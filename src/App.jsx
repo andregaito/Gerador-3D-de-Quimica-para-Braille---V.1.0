@@ -24,7 +24,14 @@ const BRAILLE_MAP = {
     'f': [1, 2, 4], 'g': [1, 2, 4, 5], 'h': [1, 2, 5], 'i': [2, 4], 'j': [2, 4, 5],
     'k': [1, 3], 'l': [1, 2, 3], 'm': [1, 3, 4], 'n': [1, 3, 4, 5], 'o': [1, 3, 5],
     'p': [1, 2, 3, 4], 'q': [1, 2, 3, 4, 5], 'r': [1, 2, 3, 5], 's': [2, 3, 4], 't': [2, 3, 4, 5],
-    'u': [1, 3, 6], 'v': [1, 2, 3, 6], 'w': [2, 4, 5, 6], 'x': [1, 3, 4, 6], 'y': [1, 3, 4, 5, 6], 'z': [1, 3, 5, 6]
+    'u': [1, 3, 6], 'v': [1, 2, 3, 6], 'w': [2, 4, 5, 6], 'x': [1, 3, 4, 6], 'y': [1, 3, 4, 5, 6], 'z': [1, 3, 5, 6],
+    // Acentuação e Cedilha (Português)
+    'á': [1, 2, 3, 5, 6], 'à': [1, 2, 3, 4, 6], 'â': [1, 6], 'ã': [3, 4, 5],
+    'é': [1, 2, 3, 4, 5, 6], 'ê': [1, 2, 6],
+    'í': [3, 4],
+    'ó': [3, 4, 6], 'ô': [1, 4, 5, 6], 'õ': [2, 4, 6],
+    'ú': [2, 3, 4, 5, 6],
+    'ç': [1, 2, 3, 4, 6]
   },
   lowerNumbers: { 
     '1': [2], '2': [2, 3], '3': [2, 5], '4': [2, 5, 6], '5': [2, 6],
@@ -64,28 +71,54 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
-  const [copiado, setCopiado] = useState(false); // Estado para controlar o botão de cópia
+  const [copiado, setCopiado] = useState(false);
 
   const parseBraille = (text) => {
     if (!text.trim()) {
       setCells([]);
       return [];
     }
+    
     const result = [];
-    const cleanText = text.trim();
+    const normalizedText = text.replace(/\r/g, ''); // Remove Carriage Returns para consistência
     const chargeRegex = /\s*([+-]\d*|\d+[+-])$/;
-    const match = cleanText.match(chargeRegex);
-    let baseStr = cleanText; let chargeStr = "";
+    
+    let baseStr = normalizedText; 
+    let chargeStr = "";
 
-    if (match) { chargeStr = match[1]; baseStr = cleanText.slice(0, match.index).trim(); }
+    // Protege textos contínuos (com enter) de serem interpretados pelo regex químico acidentalmente
+    if (!normalizedText.includes('\n')) {
+      const match = normalizedText.trim().match(chargeRegex);
+      if (match) { 
+        chargeStr = match[1]; 
+        baseStr = normalizedText.trim().slice(0, match.index).trim(); 
+      }
+    }
 
     for (let char of baseStr) {
-      if (char === ' ') continue;
-      if (/[A-Z]/.test(char)) {
-        result.push({ dots: BRAILLE_MAP.uppercaseIndicator, label: '⠨', description: 'Maiúscula' });
-        result.push({ dots: BRAILLE_MAP.letters[char.toLowerCase()], label: char, description: `Letra ${char}` });
-      } else if (/[a-z]/.test(char)) {
-        result.push({ dots: BRAILLE_MAP.letters[char], label: char, description: `Letra ${char}` });
+      if (char === ' ') {
+        result.push({ dots: [], label: ' ', description: 'Espaço' });
+        continue;
+      }
+      
+      if (char === '\n') {
+        result.push({ isNewline: true, dots: [], label: '↵', description: 'Parágrafo' });
+        continue;
+      }
+
+      // Validação aprimorada para contemplar todo o alfabeto latino acentuado
+      const isLetter = /[a-zA-ZáàâãéêíóôõúçÁÀÂÃÉÊÍÓÔÕÚÇ]/.test(char);
+
+      if (isLetter) {
+        // Se a letra não for igual à sua forma minúscula, ela é Maiúscula
+        if (char !== char.toLowerCase()) {
+          result.push({ dots: BRAILLE_MAP.uppercaseIndicator, label: '⠨', description: 'Maiúscula' });
+        }
+        
+        const lowerChar = char.toLowerCase();
+        if (BRAILLE_MAP.letters[lowerChar]) {
+          result.push({ dots: BRAILLE_MAP.letters[lowerChar], label: char, description: `Letra ${char}` });
+        }
       } else if (/[0-9]/.test(char)) {
         result.push({ dots: BRAILLE_MAP.lowerNumbers[char], label: char, description: `Índice ${char}` });
       } else if (BRAILLE_MAP.symbols[char]) {
@@ -110,7 +143,9 @@ export default function App() {
         }
       }
     }
-    setCells(result); return result;
+    
+    setCells(result); 
+    return result;
   };
 
   useEffect(() => { parseBraille(input); }, []);
@@ -147,26 +182,28 @@ export default function App() {
     }
   };
 
-  // ----- NOVA FUNÇÃO: Gera a string unicode baseado nos pontos -----
   const brailleUnicodeText = cells.map(cell => {
-    let code = 10240; // Base do Braille na Tabela Unicode (U+2800)
-    cell.dots.forEach(d => {
-      if (d >= 1 && d <= 6) code += Math.pow(2, d - 1);
-    });
+    if (cell.isNewline) return '\n';
+    
+    let code = 10240; // Base Braille Tabela Unicode
+    if (cell.dots) {
+      cell.dots.forEach(d => {
+        if (d >= 1 && d <= 6) code += Math.pow(2, d - 1);
+      });
+    }
     return String.fromCharCode(code);
   }).join('');
 
   const handleCopy = () => {
     navigator.clipboard.writeText(brailleUnicodeText);
     setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000); // Reseta o botão após 2s
+    setTimeout(() => setCopiado(false), 2000); 
   };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
         
-        {/* Cabeçalho Atualizado com Hyperlink */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center space-x-3 mb-3">
             <Beaker className="w-8 h-8 text-blue-600 flex-shrink-0" />
@@ -199,15 +236,20 @@ export default function App() {
           </div>
         </div>
 
-        {/* Formulário */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">Digite a fórmula do Íon ou Composto Químico</label>
-              <input
-                id="ionInput" type="text" value={input}
+              <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
+                Digite a fórmula do Íon, Composto Químico ou Texto
+              </label>
+              {/* O INPUT FOI TROCADO PARA TEXTAREA PARA PERMITIR PARÁGRAFOS (ENTER) */}
+              <textarea
+                id="ionInput" 
+                value={input}
                 onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono"
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px]"
+                rows={2}
+                placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
               />
             </div>
             <div className="flex items-end">
@@ -224,7 +266,6 @@ export default function App() {
           </form>
         </div>
 
-        {/* Visualizador 3D com Grids, Eixos e Imagem Customizada */}
         {stlUrl && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
             <div className="flex justify-between items-center mb-4">
@@ -242,8 +283,6 @@ export default function App() {
             </div>
             
             <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
-              
-              {/* Botão de Auto-Rotação com Imagem Personalizada */}
               <button
                 onClick={() => setAutoRotate(!autoRotate)}
                 className={`absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all ${
@@ -265,7 +304,6 @@ export default function App() {
                   </Stage>
                 </Suspense>
                 
-                {/* Eixos XYZ e Grade (Grid de 200mm com 20 divisões = 10mm de espaçamento) */}
                 <axesHelper args={[30]} />
                 <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, -0.1, 0]} />
                 
@@ -279,28 +317,31 @@ export default function App() {
           </div>
         )}
 
-        {/* Visualização 2D com Rodapé Restaurado e Novo Bloco de Cópia */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
           
           {cells.length > 0 ? (
             <div>
               <div className="flex flex-wrap items-start bg-slate-100 p-6 rounded-lg border border-slate-200 overflow-x-auto min-h-[180px]">
-                {cells.map((cell, index) => <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />)}
+                {cells.map((cell, index) => {
+                  // Aqui interpretamos o comando de parágrafo gerando uma quebra 100% (w-full) visualmente na div Flex
+                  if (cell.isNewline) return <div key={`nl-${index}`} className="w-full h-4"></div>;
+                  
+                  return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
+                })}
               </div>
               
-              {/* Rodapé Adicionado */}
               <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
                 <p>Largura estimada na impressão (Extrusão a 6.5mm/cela): <span className="font-bold text-slate-700">~{(cells.length * 6.5).toFixed(1)} mm</span></p>
                 <p>Total: <span className="font-bold text-slate-700">{cells.length}</span> celas em Braille</p>
               </div>
 
-              {/* ---------------- NOVA FUNÇÃO: Caixa de Texto Copiável ---------------- */}
               <div className="mt-6 flex flex-col md:flex-row gap-4">
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
                   <div>
                     <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
-                    <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem]">
+                    {/* A classe whitespace-pre-wrap permite que o Unicode obedeça o \n do Enter corretamente. */}
+                    <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap">
                       {brailleUnicodeText}
                     </div>
                   </div>
@@ -322,7 +363,6 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              {/* ---------------------------------------------------------------------- */}
 
             </div>
           ) : (
