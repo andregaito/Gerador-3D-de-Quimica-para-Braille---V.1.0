@@ -40,13 +40,40 @@ const BRAILLE_MAP = {
     '1': [1], '2': [1, 2], '3': [1, 4], '4': [1, 4, 5], '5': [1, 5],
     '6': [1, 2, 4], '7': [1, 2, 4, 5], '8': [1, 2, 5], '9': [2, 4], '0': [2, 4, 5]
   },
-  // ADICIONADO: Ponto final e outras pontuações básicas
   symbols: { 
     '(': [1, 2, 6], ')': [3, 4, 5], '[': [1, 2, 3, 5, 6], ']': [2, 3, 4, 5, 6],
     '.': [3], ',': [2], ';': [2, 3], ':': [2, 5], '!': [2, 3, 5], '?': [2, 6]
   },
   chargeIndicator: [5], numberSign: [3, 4, 5, 6], plus: [2, 3, 5], minus: [3, 6]
 };
+
+// =========================================================
+// LÓGICA DO TRADUTOR REVERSO (Braille -> Português)
+// =========================================================
+const getU = (dots) => {
+  let code = 10240; // Base do Braille (U+2800)
+  if (dots) {
+    dots.forEach(d => { if (d >= 1 && d <= 6) code += Math.pow(2, d - 1); });
+  }
+  return String.fromCharCode(code);
+};
+
+const REVERSE_MAP = {};
+Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
+  REVERSE_MAP[getU(dots)] = { type: 'letter', char };
+});
+Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
+  REVERSE_MAP[getU(dots)] = { type: 'lowerNumber', char };
+});
+Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
+  REVERSE_MAP[getU(dots)] = { type: 'symbol', char };
+});
+REVERSE_MAP[getU(BRAILLE_MAP.plus)] = { type: 'symbol', char: '+' };
+REVERSE_MAP[getU(BRAILLE_MAP.minus)] = { type: 'symbol', char: '-' };
+
+const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
+const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
+// =========================================================
 
 const Dot = ({ active }) => (
   <div className={`w-4 h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-2 border-slate-200'}`} />
@@ -75,6 +102,10 @@ export default function App() {
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  
+  // Novos Estados para o Tradutor Reverso
+  const [brailleInput, setBrailleInput] = useState('');
+  const [translatedText, setTranslatedText] = useState('');
 
   const parseBraille = (text) => {
     if (!text.trim()) {
@@ -184,7 +215,6 @@ export default function App() {
 
   const brailleUnicodeText = cells.map(cell => {
     if (cell.isNewline) return '\n';
-    
     let code = 10240; 
     if (cell.dots) {
       cell.dots.forEach(d => {
@@ -200,13 +230,62 @@ export default function App() {
     setTimeout(() => setCopiado(false), 2000); 
   };
 
-  // Calcula apenas as celas físicas para não contar \n como milímetros
+  // Função para executar a tradução Braille -> Português
+  const handleBrailleTranslate = (text) => {
+    setBrailleInput(text);
+    let result = '';
+    let isUpper = false;
+    let isNumber = false;
+    // Map para traduzir números padrão (precedidos pelo NUMBER_INDICATOR)
+    const numMap = {'a':'1','b':'2','c':'3','d':'4','e':'5','f':'6','g':'7','h':'8','i':'9','j':'0'};
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (char === ' ' || char === '⠀') {
+        result += ' ';
+        isNumber = false;
+        continue;
+      }
+      if (char === '\n') {
+        result += '\n';
+        isNumber = false;
+        continue;
+      }
+
+      if (char === UPPER_INDICATOR) {
+        isUpper = true;
+        continue;
+      }
+      if (char === NUMBER_INDICATOR) {
+        isNumber = true;
+        continue;
+      }
+
+      const mapped = REVERSE_MAP[char];
+      if (mapped) {
+        if (isNumber && mapped.type === 'letter' && numMap[mapped.char]) {
+          result += numMap[mapped.char]; // Caso seja um número (a=1, b=2...)
+        } else if (mapped.type === 'letter') {
+          result += isUpper ? mapped.char.toUpperCase() : mapped.char;
+          isUpper = false; // Consome o estado de Maiúscula após aplicar
+        } else {
+          result += mapped.char; // Simbolos, índices inferiores, etc.
+        }
+      } else {
+        result += char; // Mantém o caractere se for desconhecido
+      }
+    }
+    setTranslatedText(result);
+  };
+
   const celasFisicas = cells.filter(c => !c.isNewline);
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
         
+        {/* Cabeçalho */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center space-x-3 mb-3">
             <Beaker className="w-8 h-8 text-blue-600 flex-shrink-0" />
@@ -239,6 +318,7 @@ export default function App() {
           </div>
         </div>
 
+        {/* Formulário de Input */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -268,6 +348,7 @@ export default function App() {
           </form>
         </div>
 
+        {/* Visualizador 3D */}
         {stlUrl && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
             <div className="flex justify-between items-center mb-4">
@@ -319,6 +400,7 @@ export default function App() {
           </div>
         )}
 
+        {/* Visualização 2D e Área de Tradução */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
           
@@ -332,11 +414,14 @@ export default function App() {
               </div>
               
               <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
-                <p>Largura estimada na impressão (Extrusão a 6.5mm/cela): <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
-                <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas em Braille</p>
+                <p>Largura estimada na impressão: <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
+                <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
               </div>
 
+              {/* CONTAINERS LADO A LADO - Copiar Braille e Tradutor Reverso */}
               <div className="mt-6 flex flex-col md:flex-row gap-4">
+                
+                {/* Lado Esquerdo: Copiar o Braille Gerado */}
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
                   <div>
                     <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
@@ -361,6 +446,22 @@ export default function App() {
                     )}
                   </button>
                 </div>
+
+                {/* Lado Direito: Tradutor Reverso */}
+                <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
+                  <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Tradutor Reverso (Braille ➔ Português)</span>
+                  <textarea
+                    value={brailleInput}
+                    onChange={(e) => handleBrailleTranslate(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-3 resize-y min-h-[4rem]"
+                    placeholder="Cole caracteres Braille aqui..."
+                  />
+                  <span className="block text-xs font-bold text-slate-500 mb-1 uppercase">Tradução:</span>
+                  <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
+                    {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
+                  </div>
+                </div>
+
               </div>
 
             </div>
