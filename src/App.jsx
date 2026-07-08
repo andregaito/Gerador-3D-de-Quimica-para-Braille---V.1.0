@@ -48,10 +48,10 @@ const BRAILLE_MAP = {
 };
 
 // =========================================================
-// LÓGICA DO TRADUTOR REVERSO (Braille -> Português)
+// LÓGICA DO TRADUTOR REVERSO COM HEURÍSTICA QUÍMICA
 // =========================================================
 const getU = (dots) => {
-  let code = 10240; // Base do Braille (U+2800)
+  let code = 10240; 
   if (dots) {
     dots.forEach(d => { if (d >= 1 && d <= 6) code += Math.pow(2, d - 1); });
   }
@@ -59,15 +59,34 @@ const getU = (dots) => {
 };
 
 const REVERSE_MAP = {};
+
+// 1. Mapeia as Letras
 Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'letter', char };
 });
-Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
-  REVERSE_MAP[getU(dots)] = { type: 'lowerNumber', char };
-});
+
+// 2. Mapeia os Símbolos (Pontuação)
 Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'symbol', char };
 });
+
+// 3. Mapeia os Números Inferiores (Heurística Química)
+Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
+  const u = getU(dots);
+  // Se o Braille já foi registrado como símbolo (ex: ⠂ é ',' e também '1')
+  if (REVERSE_MAP[u] && REVERSE_MAP[u].type === 'symbol') {
+    if (char === '1') {
+      // Em Química, quase não existe índice "1". Então preservamos a Vírgula.
+    } else {
+      // Para índices 2, 3, 4..., eles são MUITO mais comuns que ;, :, ?, ! em química. 
+      // Então o número sobrescreve a pontuação no tradutor.
+      REVERSE_MAP[u] = { type: 'lowerNumber', char };
+    }
+  } else {
+    REVERSE_MAP[u] = { type: 'lowerNumber', char };
+  }
+});
+
 REVERSE_MAP[getU(BRAILLE_MAP.plus)] = { type: 'symbol', char: '+' };
 REVERSE_MAP[getU(BRAILLE_MAP.minus)] = { type: 'symbol', char: '-' };
 
@@ -103,7 +122,6 @@ export default function App() {
   const [autoRotate, setAutoRotate] = useState(false);
   const [copiado, setCopiado] = useState(false);
   
-  // Novos Estados para o Tradutor Reverso
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
 
@@ -230,13 +248,11 @@ export default function App() {
     setTimeout(() => setCopiado(false), 2000); 
   };
 
-  // Função para executar a tradução Braille -> Português
   const handleBrailleTranslate = (text) => {
     setBrailleInput(text);
     let result = '';
     let isUpper = false;
     let isNumber = false;
-    // Map para traduzir números padrão (precedidos pelo NUMBER_INDICATOR)
     const numMap = {'a':'1','b':'2','c':'3','d':'4','e':'5','f':'6','g':'7','h':'8','i':'9','j':'0'};
 
     for (let i = 0; i < text.length; i++) {
@@ -265,15 +281,15 @@ export default function App() {
       const mapped = REVERSE_MAP[char];
       if (mapped) {
         if (isNumber && mapped.type === 'letter' && numMap[mapped.char]) {
-          result += numMap[mapped.char]; // Caso seja um número (a=1, b=2...)
+          result += numMap[mapped.char];
         } else if (mapped.type === 'letter') {
           result += isUpper ? mapped.char.toUpperCase() : mapped.char;
-          isUpper = false; // Consome o estado de Maiúscula após aplicar
+          isUpper = false;
         } else {
-          result += mapped.char; // Simbolos, índices inferiores, etc.
+          result += mapped.char;
         }
       } else {
-        result += char; // Mantém o caractere se for desconhecido
+        result += char; 
       }
     }
     setTranslatedText(result);
@@ -285,7 +301,6 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-800 p-6 font-sans">
       <div className="max-w-5xl mx-auto space-y-6">
         
-        {/* Cabeçalho */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <div className="flex items-center space-x-3 mb-3">
             <Beaker className="w-8 h-8 text-blue-600 flex-shrink-0" />
@@ -318,7 +333,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Formulário de Input */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -348,7 +362,6 @@ export default function App() {
           </form>
         </div>
 
-        {/* Visualizador 3D */}
         {stlUrl && (
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
             <div className="flex justify-between items-center mb-4">
@@ -400,7 +413,6 @@ export default function App() {
           </div>
         )}
 
-        {/* Visualização 2D e Área de Tradução */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
           <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
           
@@ -418,10 +430,8 @@ export default function App() {
                 <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
               </div>
 
-              {/* CONTAINERS LADO A LADO - Copiar Braille e Tradutor Reverso */}
               <div className="mt-6 flex flex-col md:flex-row gap-4">
                 
-                {/* Lado Esquerdo: Copiar o Braille Gerado */}
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
                   <div>
                     <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
@@ -447,7 +457,6 @@ export default function App() {
                   </button>
                 </div>
 
-                {/* Lado Direito: Tradutor Reverso */}
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
                   <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Tradutor Reverso (Braille ➔ Português)</span>
                   <textarea
