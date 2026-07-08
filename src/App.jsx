@@ -9,7 +9,8 @@ import { useLoader } from '@react-three/fiber';
 
 // Importações de Imagens
 import iconeRotacao from './assets/icone-rotacao.png';
-import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.jpg';
+// CORREÇÃO: Extensão alterada de .jpg para .png
+import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
 
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
@@ -297,7 +298,6 @@ export default function App() {
 
   const celasFisicas = cells.filter(c => !c.isNewline);
 
-  // Alteração: Container global foi ajustado com flex-col e min-h-screen para ancorar o rodapé.
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
       
@@ -305,7 +305,6 @@ export default function App() {
       <div className="flex-grow p-6">
         <div className="max-w-5xl mx-auto space-y-6">
           
-          {/* Cabeçalho Atualizado com a Nova Logo */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
             <div className="flex items-center space-x-4 mb-4">
               <img 
@@ -517,12 +516,10 @@ export default function App() {
         </div>
       </div>
 
-      {/* NOVO RODAPÉ (FOOTER) ADICIONADO */}
       <footer className="bg-slate-900 text-slate-300 py-8 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           
           <div className="flex items-center space-x-4">
-            {/* Ícone de átomo representando o projeto */}
             <Atom className="w-10 h-10 text-slate-400 hidden sm:block" />
             <div className="text-center md:text-left">
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
