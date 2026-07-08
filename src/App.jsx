@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Github, Instagram, Linkedin, GraduationCap, Atom } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, GraduationCap, Atom } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -9,8 +9,33 @@ import { useLoader } from '@react-three/fiber';
 
 // Importações de Imagens
 import iconeRotacao from './assets/icone-rotacao.png';
-// CORREÇÃO: Extensão alterada de .jpg para .png
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
+
+// =========================================================
+// ÍCONES SOCIAIS NATIVOS (Para evitar erros no build do Vercel)
+// =========================================================
+const GithubIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
+    <path d="M9 18c-4.51 2-5-2-7-2"></path>
+  </svg>
+);
+
+const InstagramIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+  </svg>
+);
+
+const LinkedinIcon = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+    <rect width="4" height="12" x="2" y="9"></rect>
+    <circle cx="4" cy="4" r="2"></circle>
+  </svg>
+);
 
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
@@ -535,13 +560,13 @@ export default function App() {
               <GraduationCap className="w-6 h-6" />
             </a>
             <a href="https://www.instagram.com/andre_gaito/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="Instagram">
-              <Instagram className="w-6 h-6" />
+              <InstagramIcon className="w-6 h-6" />
             </a>
             <a href="https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="GitHub">
-              <Github className="w-6 h-6" />
+              <GithubIcon className="w-6 h-6" />
             </a>
             <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="LinkedIn">
-              <Linkedin className="w-6 h-6" />
+              <LinkedinIcon className="w-6 h-6" />
             </a>
           </div>
 
