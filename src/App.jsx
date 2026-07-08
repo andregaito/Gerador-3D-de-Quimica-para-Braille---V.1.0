@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Beaker, Settings, AlertCircle, ArrowRight, Download, Box, Copy, Check } from 'lucide-react';
+import { Beaker, Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2 } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -60,26 +60,18 @@ const getU = (dots) => {
 
 const REVERSE_MAP = {};
 
-// 1. Mapeia as Letras
 Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'letter', char };
 });
 
-// 2. Mapeia os Símbolos (Pontuação)
 Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'symbol', char };
 });
 
-// 3. Mapeia os Números Inferiores (Heurística Química)
 Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
   const u = getU(dots);
-  // Se o Braille já foi registrado como símbolo (ex: ⠂ é ',' e também '1')
   if (REVERSE_MAP[u] && REVERSE_MAP[u].type === 'symbol') {
-    if (char === '1') {
-      // Em Química, quase não existe índice "1". Então preservamos a Vírgula.
-    } else {
-      // Para índices 2, 3, 4..., eles são MUITO mais comuns que ;, :, ?, ! em química. 
-      // Então o número sobrescreve a pontuação no tradutor.
+    if (char !== '1') {
       REVERSE_MAP[u] = { type: 'lowerNumber', char };
     }
   } else {
@@ -295,6 +287,11 @@ export default function App() {
     setTranslatedText(result);
   };
 
+  const handleClearTranslator = () => {
+    setBrailleInput('');
+    setTranslatedText('');
+  };
+
   const celasFisicas = cells.filter(c => !c.isNewline);
 
   return (
@@ -457,15 +454,36 @@ export default function App() {
                   </button>
                 </div>
 
+                {/* Bloco Atualizado com Botão de Limpeza e Ícones */}
                 <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
-                  <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Tradutor Reverso (Braille ➔ Português)</span>
+                  
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
+                      <Grip className="w-4 h-4 mr-1.5 text-slate-400" />
+                      Digite o texto Braille aqui
+                    </span>
+                    <button 
+                      onClick={handleClearTranslator}
+                      className="px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
+                      title="Apagar todo o texto inserido"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Limpar
+                    </button>
+                  </div>
+
                   <textarea
                     value={brailleInput}
                     onChange={(e) => handleBrailleTranslate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-3 resize-y min-h-[4rem]"
+                    className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
                     placeholder="Cole caracteres Braille aqui..."
                   />
-                  <span className="block text-xs font-bold text-slate-500 mb-1 uppercase">Tradução:</span>
+                  
+                  <span className="flex items-center text-xs font-bold text-slate-500 mb-2 uppercase">
+                    <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
+                    Tradução em Português
+                  </span>
+                  
                   <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
                     {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
                   </div>
