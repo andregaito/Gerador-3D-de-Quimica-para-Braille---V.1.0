@@ -137,7 +137,7 @@ const BrailleCell = ({ dots, label, description }) => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('gerador'); // Controle de Abas
+  const [activeTab, setActiveTab] = useState('gerador');
 
   const [input, setInput] = useState('Fe(OH)2');
   const [cells, setCells] = useState([]);
@@ -329,26 +329,26 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
       
-      {/* 1. NOVO CABEÇALHO EM DESTAQUE */}
-      <header className="bg-white pt-10 pb-8 flex flex-col md:flex-row items-center justify-center gap-6 px-6">
+      {/* 1. CABEÇALHO COM DIMENSÕES RESPONSIVAS AJUSTADAS */}
+      <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6">
         <img 
           src={logoPrincipal} 
           alt="Logo Química ao Alcance das Mãos" 
-          className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-sm"
+          className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain drop-shadow-sm"
         />
         <div className="text-center md:text-left">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
             Química ao Alcance das Mãos:
           </h1>
-          <h2 className="text-xl md:text-2xl font-medium text-slate-600 mt-2">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-slate-600 mt-1 sm:mt-2">
             Gerador 3D de Química para Braille
           </h2>
         </div>
       </header>
 
-      {/* 2. NOVA BARRA DE NAVEGAÇÃO AZUL */}
+      {/* 2. BARRA DE NAVEGAÇÃO AZUL - AGORA EM UMA LINHA NO CELULAR */}
       <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto flex flex-wrap justify-center sm:justify-start">
+        <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-center w-full">
           {[
             { id: 'gerador', label: 'Gerador Braille' },
             { id: 'sobre', label: 'Sobre o Projeto' },
@@ -358,7 +358,7 @@ export default function App() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`px-6 py-4 text-sm sm:text-base font-semibold transition-colors duration-200 ${
+              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-6 py-3 sm:py-4 text-[11px] sm:text-base font-semibold transition-colors duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-blue-900 text-white border-b-4 border-white' 
                   : 'text-blue-100 hover:bg-blue-800 hover:text-white border-b-4 border-transparent'
@@ -371,7 +371,7 @@ export default function App() {
       </nav>
 
       {/* 3. ÁREA PRINCIPAL DE CONTEÚDO */}
-      <main className="flex-grow p-6 w-full max-w-5xl mx-auto">
+      <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
         {/* ABA: GERADOR BRAILLE */}
         {activeTab === 'gerador' && (
@@ -450,7 +450,8 @@ export default function App() {
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span>Baixar .STL Pronto</span>
+                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
+                    <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
                 
@@ -607,7 +608,7 @@ export default function App() {
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
-                Criados por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">André Vinnicios S. Gaito</a>
+                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">André Vinnicios S. Gaito</a>
               </p>
             </div>
           </div>
