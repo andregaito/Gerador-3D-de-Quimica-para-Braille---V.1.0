@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, GraduationCap, Atom } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -10,6 +10,7 @@ import { useLoader } from '@react-three/fiber';
 // Importações de Imagens
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
+import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
 // ÍCONES SOCIAIS NATIVOS (Para evitar erros no build do Vercel)
@@ -136,6 +137,8 @@ const BrailleCell = ({ dots, label, description }) => {
 };
 
 export default function App() {
+  const [activeTab, setActiveTab] = useState('gerador'); // Controle de Abas
+
   const [input, setInput] = useState('Fe(OH)2');
   const [cells, setCells] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -326,236 +329,293 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
       
-      {/* Área Principal de Conteúdo */}
-      <div className="flex-grow p-6">
-        <div className="max-w-5xl mx-auto space-y-6">
-          
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <div className="flex items-center space-x-4 mb-4">
-              <img 
-                src={logoPrincipal} 
-                alt="Logo Química ao Alcance das Mãos" 
-                className="w-16 h-16 object-contain rounded-md flex-shrink-0"
-              />
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
-                  Química ao Alcance das Mãos:{' '}
-                  <span className="font-medium text-slate-600 block sm:inline">Gerador 3D de Química para Braille</span>
-                </h1>
-              </div>
-            </div>
-            
-            <div className="text-slate-600 space-y-2">
-              <p>
-                Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
-                <a 
-                  href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-blue-600 font-semibold hover:text-blue-800 hover:underline transition-colors"
-                >
-                  Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
-                </a>.
-              </p>
-              <p className="text-sm border-l-4 border-blue-500 pl-3 bg-slate-50 p-2 rounded-r">
-                Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
-                <a 
-                  href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="hover:underline cursor-pointer text-inherit font-semibold"
-                >
-                  André Vinnicios S. Gaito
-                </a>{' '}
-                para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.
-              </p>
-            </div>
-          </div>
+      {/* 1. NOVO CABEÇALHO EM DESTAQUE */}
+      <header className="bg-white pt-10 pb-8 flex flex-col md:flex-row items-center justify-center gap-6 px-6">
+        <img 
+          src={logoPrincipal} 
+          alt="Logo Química ao Alcance das Mãos" 
+          className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-sm"
+        />
+        <div className="text-center md:text-left">
+          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
+            Química ao Alcance das Mãos:
+          </h1>
+          <h2 className="text-xl md:text-2xl font-medium text-slate-600 mt-2">
+            Gerador 3D de Química para Braille
+          </h2>
+        </div>
+      </header>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
-                  Digite a fórmula do Íon, Composto Químico ou Texto
-                </label>
-                <textarea
-                  id="ionInput" 
-                  value={input}
-                  onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px]"
-                  rows={2}
-                  placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
-                />
-              </div>
-              <div className="flex items-end">
-                <button
-                  type="submit" disabled={isGenerating}
-                  className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2 h-[52px] ${
-                    isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  <Settings className={`w-5 h-5 ${isGenerating ? 'animate-spin' : ''}`} />
-                  <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* 2. NOVA BARRA DE NAVEGAÇÃO AZUL */}
+      <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-center sm:justify-start">
+          {[
+            { id: 'gerador', label: 'Gerador Braille' },
+            { id: 'sobre', label: 'Sobre o Projeto' },
+            { id: 'instrucoes', label: 'Instruções' },
+            { id: 'saiba-mais', label: 'Saiba Mais' }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-6 py-4 text-sm sm:text-base font-semibold transition-colors duration-200 ${
+                activeTab === tab.id 
+                  ? 'bg-blue-900 text-white border-b-4 border-white' 
+                  : 'text-blue-100 hover:bg-blue-800 hover:text-white border-b-4 border-transparent'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </nav>
 
-          {stlUrl && (
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-bold text-slate-800 flex items-center">
-                  <Box className="w-5 h-5 mr-2 text-slate-500" />
-                  Pré-visualização do Modelo 3D
-                </h2>
-                <button
-                  onClick={handleDownload}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Baixar .STL Pronto</span>
-                </button>
-              </div>
-              
-              <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
-                <button
-                  onClick={() => setAutoRotate(!autoRotate)}
-                  className={`absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all ${
-                    autoRotate ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-700/80 hover:bg-slate-600'
-                  }`}
-                  title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
-                >
-                  <img 
-                    src={iconeRotacao}
-                    alt="Rotacionar" 
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                </button>
-
-                <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
-                  <Suspense fallback={null}>
-                    <Stage environment="city" intensity={0.5} adjustCamera>
-                      <StlModel url={stlUrl} />
-                    </Stage>
-                  </Suspense>
-                  
-                  <axesHelper args={[30]} />
-                  <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, -0.1, 0]} />
-                  
-                  <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} enablePan={true} enableZoom={true} />
-                </Canvas>
-                
-                <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">
-                  Arraste para girar • Role o mouse para aproximar
+      {/* 3. ÁREA PRINCIPAL DE CONTEÚDO */}
+      <main className="flex-grow p-6 w-full max-w-5xl mx-auto">
+        
+        {/* ABA: GERADOR BRAILLE */}
+        {activeTab === 'gerador' && (
+          <div className="space-y-6 fade-in">
+            {/* Bloco de Contexto/Aviso */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <div className="text-slate-600 space-y-3">
+                <p>
+                  Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
+                  <a 
+                    href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 font-semibold hover:text-blue-800 hover:underline transition-colors"
+                  >
+                    Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
+                  </a>.
                 </p>
+                <div className="border-l-4 border-blue-500 pl-3 bg-slate-50 py-2 pr-3 rounded-r text-sm">
+                  <p>
+                    Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
+                    <a 
+                      href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="hover:underline cursor-pointer font-semibold text-slate-700"
+                    >
+                      André Vinnicios S. Gaito
+                    </a>{' '}
+                    para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.
+                  </p>
+                </div>
               </div>
             </div>
-          )}
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
-            
-            {cells.length > 0 ? (
-              <div>
-                <div className="flex flex-wrap items-start bg-slate-100 p-6 rounded-lg border border-slate-200 overflow-x-auto min-h-[180px]">
-                  {cells.map((cell, index) => {
-                    if (cell.isNewline) return <div key={`nl-${index}`} className="w-full h-4"></div>;
-                    return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
-                  })}
+            {/* Input Form */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
+                    Digite a fórmula do Íon, Composto Químico ou Texto
+                  </label>
+                  <textarea
+                    id="ionInput" 
+                    value={input}
+                    onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px]"
+                    rows={2}
+                    placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit" disabled={isGenerating}
+                    className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2 h-[52px] ${
+                      isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    <Settings className={`w-5 h-5 ${isGenerating ? 'animate-spin' : ''}`} />
+                    <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Visualizador 3D */}
+            {stlUrl && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center">
+                    <Box className="w-5 h-5 mr-2 text-slate-500" />
+                    Pré-visualização do Modelo 3D
+                  </h2>
+                  <button
+                    onClick={handleDownload}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Baixar .STL Pronto</span>
+                  </button>
                 </div>
                 
-                <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
-                  <p>Largura estimada na impressão: <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
-                  <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
-                </div>
+                <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
+                  <button
+                    onClick={() => setAutoRotate(!autoRotate)}
+                    className={`absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all ${
+                      autoRotate ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-700/80 hover:bg-slate-600'
+                    }`}
+                    title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
+                  >
+                    <img 
+                      src={iconeRotacao}
+                      alt="Rotacionar" 
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  </button>
 
-                <div className="mt-6 flex flex-col md:flex-row gap-4">
+                  <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
+                    <Suspense fallback={null}>
+                      <Stage environment="city" intensity={0.5} adjustCamera>
+                        <StlModel url={stlUrl} />
+                      </Stage>
+                    </Suspense>
+                    <axesHelper args={[30]} />
+                    <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, -0.1, 0]} />
+                    <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} enablePan={true} enableZoom={true} />
+                  </Canvas>
                   
-                  <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
-                    <div>
-                      <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
-                      <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap">
-                        {brailleUnicodeText}
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleCopy}
-                      className="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-md flex items-center justify-center space-x-2 transition-colors"
-                    >
-                      {copiado ? (
-                        <>
-                          <Check className="w-4 h-4 text-green-600" />
-                          <span className="text-green-700">Copiado!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          <span>Copiar Texto Braille</span>
-                        </>
-                      )}
-                    </button>
+                  <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">
+                    Arraste para girar • Role o mouse para aproximar
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Visualização 2D e Tradutor */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
+              
+              {cells.length > 0 ? (
+                <div>
+                  <div className="flex flex-wrap items-start bg-slate-100 p-6 rounded-lg border border-slate-200 overflow-x-auto min-h-[180px]">
+                    {cells.map((cell, index) => {
+                      if (cell.isNewline) return <div key={`nl-${index}`} className="w-full h-4"></div>;
+                      return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
+                    })}
+                  </div>
+                  
+                  <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
+                    <p>Largura estimada na impressão: <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
+                    <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
                   </div>
 
-                  <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
-                    
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-                        <Grip className="w-4 h-4 mr-1.5 text-slate-400" />
-                        Digite o texto Braille aqui
-                      </span>
-                      <button 
-                        onClick={handleClearTranslator}
-                        className="px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
-                        title="Apagar todo o texto inserido"
+                  <div className="mt-6 flex flex-col md:flex-row gap-4">
+                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
+                      <div>
+                        <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
+                        <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap">
+                          {brailleUnicodeText}
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleCopy}
+                        className="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-md flex items-center justify-center space-x-2 transition-colors"
                       >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Limpar
+                        {copiado ? (
+                          <>
+                            <Check className="w-4 h-4 text-green-600" />
+                            <span className="text-green-700">Copiado!</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            <span>Copiar Texto Braille</span>
+                          </>
+                        )}
                       </button>
                     </div>
 
-                    <textarea
-                      value={brailleInput}
-                      onChange={(e) => handleBrailleTranslate(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
-                      placeholder="Cole caracteres Braille aqui..."
-                    />
-                    
-                    <span className="flex items-center text-xs font-bold text-slate-500 mb-2 uppercase">
-                      <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
-                      Tradução em Português
-                    </span>
-                    
-                    <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
-                      {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
+                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
+                          <Grip className="w-4 h-4 mr-1.5 text-slate-400" />
+                          Digite o texto Braille aqui
+                        </span>
+                        <button 
+                          onClick={handleClearTranslator}
+                          className="px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
+                          title="Apagar todo o texto inserido"
+                        >
+                          <Trash2 className="w-3 h-3 mr-1" />
+                          Limpar
+                        </button>
+                      </div>
+                      <textarea
+                        value={brailleInput}
+                        onChange={(e) => handleBrailleTranslate(e.target.value)}
+                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
+                        placeholder="Cole caracteres Braille aqui..."
+                      />
+                      <span className="flex items-center text-xs font-bold text-slate-500 mb-2 uppercase">
+                        <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
+                        Tradução em Português
+                      </span>
+                      <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
+                        {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
+                      </div>
                     </div>
                   </div>
-
                 </div>
-
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg p-12">Nenhuma fórmula digitada.</div>
-            )}
+              ) : (
+                <div className="h-full flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg p-12">Nenhuma fórmula digitada.</div>
+              )}
+            </div>
           </div>
-          
-        </div>
-      </div>
+        )}
 
+        {/* OUTRAS ABAS (Subpáginas) */}
+        {activeTab === 'sobre' && (
+          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4">Sobre o Projeto</h2>
+            <p>Área reservada para documentação, contexto e informações sobre o autor.</p>
+          </div>
+        )}
+
+        {activeTab === 'instrucoes' && (
+          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
+            <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
+          </div>
+        )}
+
+        {activeTab === 'saiba-mais' && (
+          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
+            <p>Área reservada para atualizações, parcerias e futuro do projeto.</p>
+          </div>
+        )}
+
+      </main>
+
+      {/* 4. RODAPÉ COM NOVO ÍCONE DE ACESSIBILIDADE E E-MAIL */}
       <footer className="bg-slate-900 text-slate-300 py-8 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           
           <div className="flex items-center space-x-4">
-            <Atom className="w-10 h-10 text-slate-400 hidden sm:block" />
+            <img 
+              src={iconeAcessibilidade} 
+              alt="Símbolo de Acessibilidade" 
+              className="w-10 h-10 object-contain hidden sm:block opacity-80"
+            />
             <div className="text-center md:text-left">
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
-                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">André Vinnicios S. Gaito</a>
+                Criados por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">André Vinnicios S. Gaito</a>
               </p>
             </div>
           </div>
 
           <div className="flex items-center space-x-5">
+            <a href="mailto:andrevinniciosgaito@gmail.com" className="text-slate-400 hover:text-white transition-colors" title="Enviar E-mail">
+              <Mail className="w-6 h-6" />
+            </a>
             <a href="http://lattes.cnpq.br/9008126975057063" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="Currículo Lattes">
               <GraduationCap className="w-6 h-6" />
             </a>
