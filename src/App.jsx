@@ -150,11 +150,18 @@ export default function App() {
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
 
-  const parseBraille = (text) => {
-    if (!text.trim()) {
+  const parseBraille = (rawText) => {
+    if (!rawText.trim()) {
       setCells([]);
       return [];
     }
+    
+    // Normalização de Subscritos para Números Normais
+    const subscriptMap = {
+      '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', 
+      '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
+    };
+    const text = rawText.replace(/[₀-₉]/g, char => subscriptMap[char]);
     
     const result = [];
     const normalizedText = text.replace(/\r/g, ''); 
@@ -330,7 +337,6 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
       
-      {/* 1. CABEÇALHO ALINHADO À ESQUERDA NO DESKTOP, LADO A LADO NO MOBILE */}
       <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 shadow-sm z-10 relative">
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
           <img 
@@ -349,7 +355,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* 2. BARRA DE NAVEGAÇÃO AZUL */}
       <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
         <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
@@ -373,14 +378,11 @@ export default function App() {
         </div>
       </nav>
 
-      {/* 3. ÁREA PRINCIPAL DE CONTEÚDO */}
       <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
-        {/* ABA: GERADOR BRAILLE */}
         {activeTab === 'gerador' && (
           <div className="space-y-6 fade-in">
             
-            {/* Bloco de Contexto/Aviso */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
                 <p>
@@ -411,7 +413,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Input Form */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
@@ -441,7 +442,6 @@ export default function App() {
               </form>
             </div>
 
-            {/* Visualizador 3D */}
             {stlUrl && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
                 <div className="flex justify-between items-center mb-4">
@@ -492,7 +492,6 @@ export default function App() {
               </div>
             )}
 
-            {/* Visualização 2D e Tradutor */}
             <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
               <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">
                 Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" />
@@ -500,7 +499,6 @@ export default function App() {
               
               {cells.length > 0 ? (
                 <div>
-                  {/* Container Responsivo: Grid de 4 colunas no mobile, Flex wrap no Desktop */}
                   <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-start gap-y-4 gap-x-1 sm:gap-x-0 bg-slate-100 p-4 sm:p-6 rounded-lg border border-slate-200 min-h-[180px]">
                     {cells.map((cell, index) => {
                       if (cell.isNewline) return <div key={`nl-${index}`} className="col-span-4 sm:w-full h-2 sm:h-4"></div>;
@@ -601,7 +599,6 @@ export default function App() {
 
       </main>
 
-      {/* 4. RODAPÉ COM VISIBILIDADE DO ÍCONE DE ACESSIBILIDADE CORRIGIDA */}
       <footer className="bg-slate-900 text-slate-300 py-8 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           
@@ -611,7 +608,7 @@ export default function App() {
               alt="Símbolo de Acessibilidade" 
               className="w-10 h-10 object-contain opacity-80 flex-shrink-0"
             />
-            <div className="text-left">
+            <div className="text-center md:text-left">
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
