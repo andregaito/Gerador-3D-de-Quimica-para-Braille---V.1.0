@@ -632,11 +632,43 @@ export default function App() {
 
         {/* OUTRAS ABAS (Subpáginas) */}
         {activeTab === 'sobre' && (
-          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
-            <h2 className="text-2xl font-bold text-slate-700 mb-4">Sobre o Projeto</h2>
-            <p>Área reservada para documentação, contexto e informações sobre o autor.</p>
-          </div>
-        )}
+  <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
+    
+    <div className="border-b border-slate-100 pb-6">
+      <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
+      <p className="text-lg text-blue-600 font-medium mt-2">Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
+      <p className="leading-relaxed">
+        O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o MEC tenham estabelecido a norma da <em>Grafia Química Braille para Uso no Brasil</em>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.
+      </p>
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="text-xl font-bold text-slate-800">A Solução: Código Aberto e Impressão 3D</h3>
+      <p className="leading-relaxed">
+        O Gerador 3D de Química para Braille nasceu para ser uma ponte entre a tecnologia de prototipagem rápida e a educação inclusiva. Através desta plataforma <strong>Open Source</strong>, qualquer professor, escola ou laboratório maker pode digitar uma fórmula e gerar uma matriz tátil digital (STL) em segundos. O que antes demorava semanas para ser encomendado, agora pode ser fabricado na própria escola via impressão 3D, sob demanda e com baixo custo.
+      </p>
+    </div>
+
+    <div className="space-y-4">
+      <h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3>
+      <p className="leading-relaxed">
+        Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.
+      </p>
+    </div>
+
+    <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 mt-8">
+      <h3 className="text-lg font-bold text-slate-800 mb-2">Sobre o Desenvolvedor</h3>
+      <p className="text-sm leading-relaxed">
+        Idealizado e desenvolvido por <strong>André Vinnicios S. Gaito</strong>, o projeto une paixão por química, programação e desenvolvimento de hardware. Movido pela filosofia do movimento maker, André busca transformar a forma como ferramentas educacionais são construídas, provando que a verdadeira inovação acontece quando a ciência é colocada ao alcance de todas as mãos.
+      </p>
+    </div>
+
+  </div>
+)}
 
         {activeTab === 'instrucoes' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
