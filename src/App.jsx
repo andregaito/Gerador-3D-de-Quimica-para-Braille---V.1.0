@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2 } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -13,7 +13,7 @@ import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transpare
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
-// ÍCONES SOCIAIS NATIVOS (Para evitar erros no build do Vercel)
+// ÍCONES SOCIAIS NATIVOS
 // =========================================================
 const GithubIcon = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -77,9 +77,6 @@ const BRAILLE_MAP = {
   chargeIndicator: [5], numberSign: [3, 4, 5, 6], plus: [2, 3, 5], minus: [3, 6]
 };
 
-// =========================================================
-// LÓGICA DO TRADUTOR REVERSO
-// =========================================================
 const getU = (dots) => {
   let code = 10240; 
   if (dots) {
@@ -93,11 +90,9 @@ const REVERSE_MAP = {};
 Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'letter', char };
 });
-
 Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
   REVERSE_MAP[getU(dots)] = { type: 'symbol', char };
 });
-
 Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
   const u = getU(dots);
   if (REVERSE_MAP[u] && REVERSE_MAP[u].type === 'symbol') {
@@ -114,9 +109,7 @@ REVERSE_MAP[getU(BRAILLE_MAP.minus)] = { type: 'symbol', char: '-' };
 
 const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
-// =========================================================
 
-// Dot Responsivo: Menor no mobile (w-2.5), normal no desktop (sm:w-4)
 const Dot = ({ active }) => (
   <div className={`w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-[1.5px] sm:border-2 border-slate-200'}`} />
 );
@@ -150,13 +143,15 @@ export default function App() {
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
 
+  // Estado para controle do ditado por voz
+  const [isListening, setIsListening] = useState(false);
+
   const parseBraille = (rawText) => {
     if (!rawText.trim()) {
       setCells([]);
       return [];
     }
     
-    // Normalização de Subscritos para Números Normais
     const subscriptMap = {
       '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', 
       '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9'
@@ -183,7 +178,6 @@ export default function App() {
         result.push({ dots: [], label: ' ', description: 'Espaço' });
         continue;
       }
-      
       if (char === '\n') {
         result.push({ isNewline: true, dots: [], label: '↵', description: 'Parágrafo' });
         continue;
@@ -195,7 +189,6 @@ export default function App() {
         if (char !== char.toLowerCase()) {
           result.push({ dots: BRAILLE_MAP.uppercaseIndicator, label: '⠨', description: 'Maiúscula' });
         }
-        
         const lowerChar = char.toLowerCase();
         if (BRAILLE_MAP.letters[lowerChar]) {
           result.push({ dots: BRAILLE_MAP.letters[lowerChar], label: char, description: `Letra ${char}` });
@@ -234,9 +227,7 @@ export default function App() {
   const handleGenerate = async (e) => {
     e.preventDefault();
     const blocosGerados = parseBraille(input);
-    
     if (!blocosGerados || blocosGerados.length === 0) return;
-    
     setIsGenerating(true);
     setStlUrl(null); 
 
@@ -289,7 +280,6 @@ export default function App() {
 
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
-
       if (char === ' ' || char === '⠀') {
         result += ' ';
         isNumber = false;
@@ -300,7 +290,6 @@ export default function App() {
         isNumber = false;
         continue;
       }
-
       if (char === UPPER_INDICATOR) {
         isUpper = true;
         continue;
@@ -309,7 +298,6 @@ export default function App() {
         isNumber = true;
         continue;
       }
-
       const mapped = REVERSE_MAP[char];
       if (mapped) {
         if (isNumber && mapped.type === 'letter' && numMap[mapped.char]) {
@@ -330,6 +318,45 @@ export default function App() {
   const handleClearTranslator = () => {
     setBrailleInput('');
     setTranslatedText('');
+  };
+
+  // =========================================================
+  // FUNÇÕES DE ÁUDIO (Ditado e Leitura em Voz Alta)
+  // =========================================================
+  const handleDictation = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Seu navegador não suporta digitação por voz nativamente. Tente usar o Google Chrome ou Edge.");
+      return;
+    }
+
+    if (isListening) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pt-BR';
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      const newText = input ? `${input} ${transcript}` : transcript;
+      setInput(newText);
+      parseBraille(newText);
+    };
+    recognition.onerror = (event) => {
+      console.error("Erro no reconhecimento de voz:", event.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  };
+
+  const handleSpeak = () => {
+    if (!translatedText) return;
+    const utterance = new SpeechSynthesisUtterance(translatedText);
+    utterance.lang = 'pt-BR';
+    window.speechSynthesis.speak(utterance);
   };
 
   const celasFisicas = cells.filter(c => !c.isNewline);
@@ -415,7 +442,8 @@ export default function App() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
+                {/* DIV RELATIVA PARA ACOMODAR O BOTÃO DE MICROFONE */}
+                <div className="flex-1 relative">
                   <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
                     Digite a fórmula do Íon, Composto Químico ou Texto
                   </label>
@@ -423,10 +451,23 @@ export default function App() {
                     id="ionInput" 
                     value={input}
                     onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px]"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
                     rows={2}
                     placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
                   />
+                  {/* BOTÃO DE DITADO POR VOZ */}
+                  <button
+                    type="button"
+                    onClick={handleDictation}
+                    title="Ditar por voz (Microfone)"
+                    className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
+                      isListening 
+                        ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400' 
+                        : 'bg-slate-200 text-slate-600 hover:bg-blue-100 hover:text-blue-600'
+                    }`}
+                  >
+                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
                 </div>
                 <div className="flex items-end">
                   <button
@@ -558,10 +599,24 @@ export default function App() {
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
                         placeholder="Cole caracteres Braille aqui..."
                       />
-                      <span className="flex items-center text-xs font-bold text-slate-500 mb-2 uppercase">
-                        <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
-                        Tradução em Português
-                      </span>
+                      
+                      {/* BOTÃO DE LER EM VOZ ALTA (TTS) */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
+                          <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
+                          Tradução em Português
+                        </span>
+                        <button
+                          onClick={handleSpeak}
+                          disabled={!translatedText}
+                          className="px-2 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Ouvir tradução em voz alta"
+                        >
+                          <Volume2 className="w-3 h-3 mr-1" />
+                          Ouvir
+                        </button>
+                      </div>
+
                       <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
                         {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
                       </div>
@@ -608,7 +663,7 @@ export default function App() {
               alt="Símbolo de Acessibilidade" 
               className="w-10 h-10 object-contain opacity-80 flex-shrink-0"
             />
-            <div className="text-center md:text-left">
+            <div className="text-left">
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
