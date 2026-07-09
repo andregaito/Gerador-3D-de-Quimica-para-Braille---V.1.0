@@ -116,21 +116,22 @@ const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
 // =========================================================
 
+// Dot Responsivo: Menor no mobile (w-2.5), normal no desktop (sm:w-4)
 const Dot = ({ active }) => (
-  <div className={`w-4 h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-2 border-slate-200'}`} />
+  <div className={`w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-[1.5px] sm:border-2 border-slate-200'}`} />
 );
 
 const BrailleCell = ({ dots, label, description }) => {
   return (
-    <div className="flex flex-col items-center mx-1 mb-4">
-      <div className="grid grid-cols-2 gap-1.5 p-2 bg-white rounded-md border border-slate-300 shadow-sm">
+    <div className="flex flex-col items-center sm:mx-1 sm:mb-4">
+      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-white rounded-md border border-slate-300 shadow-sm">
         <Dot active={dots.includes(1)} /> <Dot active={dots.includes(4)} />
         <Dot active={dots.includes(2)} /> <Dot active={dots.includes(5)} />
         <Dot active={dots.includes(3)} /> <Dot active={dots.includes(6)} />
       </div>
-      <div className="mt-2 text-center flex flex-col items-center justify-center">
-        <span className="block text-sm font-bold text-slate-700 h-5">{label}</span>
-        <span className="block text-xs text-slate-500 w-16 leading-tight break-words">{description}</span>
+      <div className="mt-1.5 sm:mt-2 text-center flex flex-col items-center justify-center">
+        <span className="block text-[11px] sm:text-sm font-bold text-slate-700 h-3 sm:h-5 leading-none">{label}</span>
+        <span className="block text-[9px] sm:text-xs text-slate-500 w-[50px] sm:w-16 leading-tight break-words">{description}</span>
       </div>
     </div>
   );
@@ -329,26 +330,28 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
       
-      {/* 1. CABEÇALHO COM DIMENSÕES RESPONSIVAS AJUSTADAS */}
-      <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 flex flex-col md:flex-row items-center justify-center gap-4 sm:gap-6 px-4 sm:px-6">
-        <img 
-          src={logoPrincipal} 
-          alt="Logo Química ao Alcance das Mãos" 
-          className="w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 object-contain drop-shadow-sm"
-        />
-        <div className="text-center md:text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Química ao Alcance das Mãos:
-          </h1>
-          <h2 className="text-lg sm:text-xl md:text-2xl font-medium text-slate-600 mt-1 sm:mt-2">
-            Gerador 3D de Química para Braille
-          </h2>
+      {/* 1. CABEÇALHO ALINHADO À ESQUERDA NO DESKTOP, LADO A LADO NO MOBILE */}
+      <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 shadow-sm z-10 relative">
+        <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
+          <img 
+            src={logoPrincipal} 
+            alt="Logo Química ao Alcance das Mãos" 
+            className="w-16 h-16 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain drop-shadow-sm flex-shrink-0"
+          />
+          <div className="text-left flex flex-col justify-center">
+            <h1 className="text-lg sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+              Química ao Alcance das Mãos:
+            </h1>
+            <h2 className="text-[13px] sm:text-xl md:text-2xl font-medium text-slate-600 mt-0.5 sm:mt-2">
+              Gerador 3D de Química para Braille
+            </h2>
+          </div>
         </div>
       </header>
 
-      {/* 2. BARRA DE NAVEGAÇÃO AZUL - AGORA EM UMA LINHA NO CELULAR */}
+      {/* 2. BARRA DE NAVEGAÇÃO AZUL */}
       <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-center w-full">
+        <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
             { id: 'gerador', label: 'Gerador Braille' },
             { id: 'sobre', label: 'Sobre o Projeto' },
@@ -358,7 +361,7 @@ export default function App() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-6 py-3 sm:py-4 text-[11px] sm:text-base font-semibold transition-colors duration-200 ${
+              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-8 py-3 sm:py-4 text-[12px] sm:text-[15px] font-semibold transition-colors duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-blue-900 text-white border-b-4 border-white' 
                   : 'text-blue-100 hover:bg-blue-800 hover:text-white border-b-4 border-transparent'
@@ -376,6 +379,7 @@ export default function App() {
         {/* ABA: GERADOR BRAILLE */}
         {activeTab === 'gerador' && (
           <div className="space-y-6 fade-in">
+            
             {/* Bloco de Contexto/Aviso */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
@@ -489,19 +493,22 @@ export default function App() {
             )}
 
             {/* Visualização 2D e Tradutor */}
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" /></h2>
+            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">
+                Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" />
+              </h2>
               
               {cells.length > 0 ? (
                 <div>
-                  <div className="flex flex-wrap items-start bg-slate-100 p-6 rounded-lg border border-slate-200 overflow-x-auto min-h-[180px]">
+                  {/* Container Responsivo: Grid de 4 colunas no mobile, Flex wrap no Desktop */}
+                  <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-start gap-y-4 gap-x-1 sm:gap-x-0 bg-slate-100 p-4 sm:p-6 rounded-lg border border-slate-200 min-h-[180px]">
                     {cells.map((cell, index) => {
-                      if (cell.isNewline) return <div key={`nl-${index}`} className="w-full h-4"></div>;
+                      if (cell.isNewline) return <div key={`nl-${index}`} className="col-span-4 sm:w-full h-2 sm:h-4"></div>;
                       return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
                     })}
                   </div>
                   
-                  <div className="mt-4 flex justify-between items-center text-sm text-slate-500 border-t border-slate-100 pt-4">
+                  <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 border-t border-slate-100 pt-4 px-1">
                     <p>Largura estimada na impressão: <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
                     <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
                   </div>
@@ -534,9 +541,9 @@ export default function App() {
 
                     <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-                          <Grip className="w-4 h-4 mr-1.5 text-slate-400" />
-                          Digite o texto Braille aqui
+                        <span className="flex items-center text-[11px] sm:text-xs font-bold text-slate-500 uppercase">
+                          <Grip className="w-4 h-4 mr-1 sm:mr-1.5 text-slate-400" />
+                          Digite o texto Braille
                         </span>
                         <button 
                           onClick={handleClearTranslator}
@@ -594,7 +601,7 @@ export default function App() {
 
       </main>
 
-      {/* 4. RODAPÉ COM NOVO ÍCONE DE ACESSIBILIDADE E E-MAIL */}
+      {/* 4. RODAPÉ COM VISIBILIDADE DO ÍCONE DE ACESSIBILIDADE CORRIGIDA */}
       <footer className="bg-slate-900 text-slate-300 py-8 px-6 mt-auto">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           
@@ -602,9 +609,9 @@ export default function App() {
             <img 
               src={iconeAcessibilidade} 
               alt="Símbolo de Acessibilidade" 
-              className="w-10 h-10 object-contain hidden sm:block opacity-80"
+              className="w-10 h-10 object-contain opacity-80 flex-shrink-0"
             />
-            <div className="text-center md:text-left">
+            <div className="text-left">
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
