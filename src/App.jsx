@@ -15,13 +15,13 @@ import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 // =========================================================
 // IMPORTAÇÃO DAS FOTOS DA EQUIPE
 // =========================================================
- import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpeg';
- import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
- import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
- import fotoHugoReis from './assets/FotoMembro-HugoReis.jpeg';
- import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.png';
+import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
+import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
+import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
+import fotoHugoReis from './assets/FotoMembro-HugoReis.jpeg';
+import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
+import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 // import fotoGabrielPecanha from './assets/FotoMembro-Gabriel Peçanha.png';
- import fotoRaissaEcard from './assets/FotoMembro-PedroXavier.jpg';
 
 // =========================================================
 // DADOS DA EQUIPE
@@ -58,6 +58,14 @@ const EQUIPE = [
     email: "hugo.reis@eq.frj.br",
     lattes: "http://lattes.cnpq.br/3500602218294576",
     foto: fotoHugoReis // Troque "null" por "fotoHugoReis"
+  },
+  {
+   nome: "Pedro Xavier",
+    titulo: "Membro do Projeto",
+    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
+    email: "",
+    lattes: "",
+    foto: fotoPedroXavier
   },
   {
     nome: "Raíssa Ecard",
