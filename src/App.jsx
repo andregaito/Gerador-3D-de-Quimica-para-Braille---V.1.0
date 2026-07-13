@@ -13,7 +13,7 @@ import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transpare
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
-// IMPORTAÇÃO DAS FOTOS DA EQUIPE
+// IMPORTAÇÃO DAS FOTOS DA EQUIPE (CORRIGIDO EXTENSÕES E VARIÁVEIS)
 // =========================================================
 import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
 import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
@@ -21,7 +21,6 @@ import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
 import fotoHugoReis from './assets/FotoMembro-HugoReis.jpeg';
 import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
 import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
-// import fotoGabrielPecanha from './assets/FotoMembro-Gabriel Peçanha.png';
 
 // =========================================================
 // DADOS DA EQUIPE
@@ -33,7 +32,7 @@ const EQUIPE = [
     descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.",
     email: "andre.gaito@gradu.iq.ufrj.br",
     lattes: "http://lattes.cnpq.br/9008126975057063",
-    foto: fotoAndreGaito // Troque "null" por "fotoAndreGaito" quando a imagem estiver na pasta
+    foto: fotoAndreGaito
   },
   {
     nome: "Prof. Dr. Ricardo Cunha Michel",
@@ -41,7 +40,7 @@ const EQUIPE = [
     descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
     email: "michel@iq.ufrj.br",
     lattes: "http://lattes.cnpq.br/7631294110820860",
-    foto: fotoRicardoMichel // Troque "null" por "fotoRicardoMichel"
+    foto: fotoRicardoMichel
   },
   {
     nome: "Dra. Fernanda Das Neves Costa",
@@ -49,39 +48,31 @@ const EQUIPE = [
     descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
     email: "FNCosta@IPPN.UFRJ.br",
     lattes: "http://lattes.cnpq.br/4349970710727785",
-    foto: fotoFernandaNeves // Troque "null" por "fotoFernandaNeves"
+    foto: fotoFernandaNeves
   },
   {
     nome: "Hugo Reis",
     titulo: "Membro do Projeto",
-    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento estratégico das atividades de campo, co-mediação nas intervenções educacionais in loco no IBC e suporte metodológico na sistematização dos dados coletados.",
-    email: "hugo.reis@eq.frj.br",
-    lattes: "http://lattes.cnpq.br/3500602218294576",
-    foto: fotoHugoReis // Troque "null" por "fotoHugoReis"
+    descricao: "Atuação no desenvolvimento e pesquisa associados ao projeto de inclusão no ensino de química.",
+    email: "",
+    lattes: "",
+    foto: fotoHugoReis
   },
   {
-   nome: "Pedro Xavier",
+    nome: "Raíssa Ecard",
+    titulo: "Membro do Projeto",
+    descricao: "Apoio na validação, modelagem e adaptação dos recursos educacionais.",
+    email: "",
+    lattes: "",
+    foto: fotoRaissaEcard
+  },
+  {
+    nome: "Pedro Xavier",
     titulo: "Membro do Projeto",
     descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
     email: "",
     lattes: "",
     foto: fotoPedroXavier
-  },
-  {
-    nome: "Raíssa Ecard",
-    titulo: "Membro do Projeto",
-    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais junto aos estudantes e apoio na análise qualitativa das interações.",
-    email: "raissaecard@pos.iq.ufrj.br",
-    lattes: "http://lattes.cnpq.br/5822903514342446",
-    foto: fotoRaissaEcard // Troque "null" por "fotoRaissaEcard"
-  },
-  {
-    nome: "Gabriel Peçanha",
-    titulo: "Membro do Projeto",
-    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
-    email: "",
-    lattes: "",
-    foto: null // Troque "null" por "fotoGabrielPecanha"
   }
 ];
 
@@ -451,7 +442,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* BARRA DE NAVEGAÇÃO EXPANDIDA */}
       <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
         <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
@@ -461,7 +451,7 @@ export default function App() {
             { id: 'saiba-mais', label: 'Saiba Mais' },
             { id: 'parcerias', label: 'Parcerias' },
             { id: 'equipe', label: 'Equipe' },
-            { id: 'bug', label: 'Achou um Bug ?' }
+            { id: 'bug', label: 'Achou um Bug?' }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -480,9 +470,7 @@ export default function App() {
 
       <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
-        {/* ======================================================== */}
         {/* ABA: GERADOR BRAILLE */}
-        {/* ======================================================== */}
         {activeTab === 'gerador' && (
           <div className="space-y-6 fade-in">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -702,9 +690,7 @@ export default function App() {
           </div>
         )}
 
-        {/* ======================================================== */}
         {/* ABA: SOBRE O PROJETO */}
-        {/* ======================================================== */}
         {activeTab === 'sobre' && (
           <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
             <div className="border-b border-slate-100 pb-6">
@@ -732,9 +718,54 @@ export default function App() {
           </div>
         )}
 
-        {/* ======================================================== */}
+        {/* ABA: EQUIPE */}
+        {activeTab === 'equipe' && (
+          <div className="space-y-6 fade-in">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {EQUIPE.map((membro, index) => (
+                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 transition-all hover:shadow-md">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-100 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
+                    {membro.foto ? (
+                      <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
+                      <p className="text-sm font-semibold text-blue-600">{membro.titulo}</p>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {membro.descricao}
+                    </p>
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
+                      {membro.email && (
+                        <a href={`mailto:${membro.email}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                          <Mail className="w-3.5 h-3.5 mr-1" />
+                          E-mail
+                        </a>
+                      )}
+                      {membro.lattes && (
+                        <a href={membro.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                          <GraduationCap className="w-3.5 h-3.5 mr-1" />
+                          Lattes
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ABA: ACHOU UM BUG? */}
-        {/* ======================================================== */}
         {activeTab === 'bug' && (
           <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
             <div className="flex justify-center mb-6">
@@ -762,61 +793,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ======================================================== */}
-        {/* ABA: EQUIPE */}
-        {/* ======================================================== */}
-        {activeTab === 'equipe' && (
-          <div className="space-y-6 fade-in">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
-              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {EQUIPE.map((membro, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 transition-all hover:shadow-md">
-                  
-                  {/* Foto do Membro ou Placeholder */}
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-100 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
-                    {membro.foto ? (
-                      <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-12 h-12 text-slate-400" />
-                    )}
-                  </div>
-
-                  {/* Informações */}
-                  <div className="flex-1 space-y-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
-                      <p className="text-sm font-semibold text-blue-600">{membro.titulo}</p>
-                    </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      {membro.descricao}
-                    </p>
-                    
-                    {/* Links de Contato */}
-                    <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
-                      {membro.email && (
-                        <a href={`mailto:${membro.email}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
-                          <Mail className="w-3.5 h-3.5 mr-1" />
-                          E-mail
-                        </a>
-                      )}
-                      {membro.lattes && (
-                        <a href={membro.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
-                          <GraduationCap className="w-3.5 h-3.5 mr-1" />
-                          Lattes
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* OUTRAS ABAS (Placeholders) */}
         {activeTab === 'instrucoes' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
@@ -824,14 +800,12 @@ export default function App() {
             <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
           </div>
         )}
-
         {activeTab === 'saiba-mais' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
             <p>Área reservada para documentações futuras.</p>
           </div>
         )}
-
         {activeTab === 'parcerias' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Parcerias</h2>
