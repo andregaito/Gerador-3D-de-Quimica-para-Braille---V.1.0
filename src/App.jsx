@@ -14,14 +14,14 @@ import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
 // IMPORTAÇÃO DAS FOTOS DA EQUIPE
-// Retire as duas barras "//" do início da linha quando colocar as imagens na pasta assets
 // =========================================================
-// import fotoAndreGaito from './assets/FotoMembro-AndreGaito.png';
-// import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.png';
-// import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
-// import fotoHugoReis from './assets/FotoMembro-HugoReis.png';
-// import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.png';
+ import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpeg';
+ import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
+ import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
+ import fotoHugoReis from './assets/FotoMembro-HugoReis.jpeg';
+ import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.png';
 // import fotoGabrielPecanha from './assets/FotoMembro-Gabriel Peçanha.png';
+ import fotoRaissaEcard from './assets/FotoMembro-PedroXavier.jpg';
 
 // =========================================================
 // DADOS DA EQUIPE
@@ -33,7 +33,7 @@ const EQUIPE = [
     descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.",
     email: "andre.gaito@gradu.iq.ufrj.br",
     lattes: "http://lattes.cnpq.br/9008126975057063",
-    foto: null // Troque "null" por "fotoAndreGaito" quando a imagem estiver na pasta
+    foto: fotoAndreGaito // Troque "null" por "fotoAndreGaito" quando a imagem estiver na pasta
   },
   {
     nome: "Prof. Dr. Ricardo Cunha Michel",
@@ -41,7 +41,7 @@ const EQUIPE = [
     descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
     email: "michel@iq.ufrj.br",
     lattes: "http://lattes.cnpq.br/7631294110820860",
-    foto: null // Troque "null" por "fotoRicardoMichel"
+    foto: fotoRicardoMichel // Troque "null" por "fotoRicardoMichel"
   },
   {
     nome: "Dra. Fernanda Das Neves Costa",
@@ -49,23 +49,23 @@ const EQUIPE = [
     descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
     email: "FNCosta@IPPN.UFRJ.br",
     lattes: "http://lattes.cnpq.br/4349970710727785",
-    foto: null // Troque "null" por "fotoFernandaNeves"
+    foto: fotoFernandaNeves // Troque "null" por "fotoFernandaNeves"
   },
   {
     nome: "Hugo Reis",
     titulo: "Membro do Projeto",
-    descricao: "Atuação no desenvolvimento e pesquisa associados ao projeto de inclusão no ensino de química.",
-    email: "",
-    lattes: "",
-    foto: null // Troque "null" por "fotoHugoReis"
+    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento estratégico das atividades de campo, co-mediação nas intervenções educacionais in loco no IBC e suporte metodológico na sistematização dos dados coletados.",
+    email: "hugo.reis@eq.frj.br",
+    lattes: "http://lattes.cnpq.br/3500602218294576",
+    foto: fotoHugoReis // Troque "null" por "fotoHugoReis"
   },
   {
     nome: "Raíssa Ecard",
     titulo: "Membro do Projeto",
-    descricao: "Apoio na validação, modelagem e adaptação dos recursos educacionais.",
-    email: "",
-    lattes: "",
-    foto: null // Troque "null" por "fotoRaissaEcard"
+    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais junto aos estudantes e apoio na análise qualitativa das interações.",
+    email: "raissaecard@pos.iq.ufrj.br",
+    lattes: "http://lattes.cnpq.br/5822903514342446",
+    foto: fotoRaissaEcard // Troque "null" por "fotoRaissaEcard"
   },
   {
     nome: "Gabriel Peçanha",
