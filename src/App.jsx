@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2 } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -7,10 +7,75 @@ import { Stage, OrbitControls } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 
-// Importações de Imagens
+// Importações de Imagens Principais
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
+
+// =========================================================
+// IMPORTAÇÃO DAS FOTOS DA EQUIPE
+// Retire as duas barras "//" do início da linha quando colocar as imagens na pasta assets
+// =========================================================
+// import fotoAndreGaito from './assets/FotoMembro-AndreGaito.png';
+// import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.png';
+// import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
+// import fotoHugoReis from './assets/FotoMembro-HugoReis.png';
+// import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.png';
+// import fotoGabrielPecanha from './assets/FotoMembro-Gabriel Peçanha.png';
+
+// =========================================================
+// DADOS DA EQUIPE
+// =========================================================
+const EQUIPE = [
+  {
+    nome: "André Vinnicios S. Gaito",
+    titulo: "Graduando em Licenciatura em Química",
+    descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.",
+    email: "andre.gaito@gradu.iq.ufrj.br",
+    lattes: "http://lattes.cnpq.br/9008126975057063",
+    foto: null // Troque "null" por "fotoAndreGaito" quando a imagem estiver na pasta
+  },
+  {
+    nome: "Prof. Dr. Ricardo Cunha Michel",
+    titulo: "Professor Doutor em Química",
+    descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
+    email: "michel@iq.ufrj.br",
+    lattes: "http://lattes.cnpq.br/7631294110820860",
+    foto: null // Troque "null" por "fotoRicardoMichel"
+  },
+  {
+    nome: "Dra. Fernanda Das Neves Costa",
+    titulo: "Pesquisadora e Coordenadora",
+    descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
+    email: "FNCosta@IPPN.UFRJ.br",
+    lattes: "http://lattes.cnpq.br/4349970710727785",
+    foto: null // Troque "null" por "fotoFernandaNeves"
+  },
+  {
+    nome: "Hugo Reis",
+    titulo: "Membro do Projeto",
+    descricao: "Atuação no desenvolvimento e pesquisa associados ao projeto de inclusão no ensino de química.",
+    email: "",
+    lattes: "",
+    foto: null // Troque "null" por "fotoHugoReis"
+  },
+  {
+    nome: "Raíssa Ecard",
+    titulo: "Membro do Projeto",
+    descricao: "Apoio na validação, modelagem e adaptação dos recursos educacionais.",
+    email: "",
+    lattes: "",
+    foto: null // Troque "null" por "fotoRaissaEcard"
+  },
+  {
+    nome: "Gabriel Peçanha",
+    titulo: "Membro do Projeto",
+    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
+    email: "",
+    lattes: "",
+    foto: null // Troque "null" por "fotoGabrielPecanha"
+  }
+];
 
 // =========================================================
 // ÍCONES SOCIAIS NATIVOS
@@ -143,7 +208,6 @@ export default function App() {
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
 
-  // Estado para controle do ditado por voz
   const [isListening, setIsListening] = useState(false);
 
   const parseBraille = (rawText) => {
@@ -320,9 +384,6 @@ export default function App() {
     setTranslatedText('');
   };
 
-  // =========================================================
-  // FUNÇÕES DE ÁUDIO (Ditado e Leitura em Voz Alta)
-  // =========================================================
   const handleDictation = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -382,18 +443,22 @@ export default function App() {
         </div>
       </header>
 
+      {/* BARRA DE NAVEGAÇÃO EXPANDIDA */}
       <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
         <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
             { id: 'gerador', label: 'Gerador Braille' },
             { id: 'sobre', label: 'Sobre o Projeto' },
             { id: 'instrucoes', label: 'Instruções' },
-            { id: 'saiba-mais', label: 'Saiba Mais' }
+            { id: 'saiba-mais', label: 'Saiba Mais' },
+            { id: 'parcerias', label: 'Parcerias' },
+            { id: 'equipe', label: 'Equipe' },
+            { id: 'bug', label: 'Achou um Bug ?' }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-8 py-3 sm:py-4 text-[12px] sm:text-[15px] font-semibold transition-colors duration-200 ${
+              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-colors duration-200 ${
                 activeTab === tab.id 
                   ? 'bg-blue-900 text-white border-b-4 border-white' 
                   : 'text-blue-100 hover:bg-blue-800 hover:text-white border-b-4 border-transparent'
@@ -407,9 +472,11 @@ export default function App() {
 
       <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
+        {/* ======================================================== */}
+        {/* ABA: GERADOR BRAILLE */}
+        {/* ======================================================== */}
         {activeTab === 'gerador' && (
           <div className="space-y-6 fade-in">
-            
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
                 <p>
@@ -442,7 +509,6 @@ export default function App() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
-                {/* DIV RELATIVA PARA ACOMODAR O BOTÃO DE MICROFONE */}
                 <div className="flex-1 relative">
                   <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
                     Digite a fórmula do Íon, Composto Químico ou Texto
@@ -455,7 +521,6 @@ export default function App() {
                     rows={2}
                     placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
                   />
-                  {/* BOTÃO DE DITADO POR VOZ */}
                   <button
                     type="button"
                     onClick={handleDictation}
@@ -600,7 +665,6 @@ export default function App() {
                         placeholder="Cole caracteres Braille aqui..."
                       />
                       
-                      {/* BOTÃO DE LER EM VOZ ALTA (TTS) */}
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
                           <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
@@ -630,46 +694,122 @@ export default function App() {
           </div>
         )}
 
-        {/* OUTRAS ABAS (Subpáginas) */}
+        {/* ======================================================== */}
+        {/* ABA: SOBRE O PROJETO */}
+        {/* ======================================================== */}
         {activeTab === 'sobre' && (
-  <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
-    
-    <div className="border-b border-slate-100 pb-6">
-      <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
-      <p className="text-lg text-blue-600 font-medium mt-2">Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
-    </div>
+          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
+            <div className="border-b border-slate-100 pb-6">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
+              <p className="text-lg text-blue-600 font-medium mt-2">Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
+              <p className="leading-relaxed">
+                O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o MEC tenham estabelecido a norma da <em>Grafia Química Braille para Uso no Brasil</em>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-800">A Solução: Código Aberto e Impressão 3D</h3>
+              <p className="leading-relaxed">
+                O Gerador 3D de Química para Braille nasceu para ser uma ponte entre a tecnologia de prototipagem rápida e a educação inclusiva. Através desta plataforma <strong>Open Source</strong>, qualquer professor, escola ou laboratório maker pode digitar uma fórmula e gerar uma matriz tátil digital (STL) em segundos. O que antes demorava semanas para ser encomendado, agora pode ser fabricado na própria escola via impressão 3D, sob demanda e com baixo custo.
+              </p>
+            </div>
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3>
+              <p className="leading-relaxed">
+                Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.
+              </p>
+            </div>
+          </div>
+        )}
 
-    <div className="space-y-4">
-      <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
-      <p className="leading-relaxed">
-        O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o MEC tenham estabelecido a norma da <em>Grafia Química Braille para Uso no Brasil</em>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.
-      </p>
-    </div>
+        {/* ======================================================== */}
+        {/* ABA: ACHOU UM BUG? */}
+        {/* ======================================================== */}
+        {activeTab === 'bug' && (
+          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 bg-red-100 rounded-full text-red-600">
+                <Bug className="w-12 h-12" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-4">Achou um Bug ou Tem uma Sugestão?</h2>
+            <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
+              O "Gerador 3D de Química para Braille" é um projeto de código aberto em constante evolução. 
+              Caso você encontre algum erro na geração dos caracteres, formatações inconsistentes, problemas na 
+              malha 3D ou qualquer outra falha técnica, por favor, nos avise! Suas sugestões de melhorias 
+              também são essenciais para aprimorarmos a ferramenta.
+            </p>
+            <a 
+              href="mailto:andrevinniciosgaito@gmail.com?subject=Reporte%20de%20Bug%20/%20Sugestão%20-%20Gerador%20Braille" 
+              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors"
+            >
+              <Mail className="w-5 h-5 mr-2" />
+              Reportar para a Equipe
+            </a>
+            <p className="mt-6 text-sm text-slate-500">
+              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
+            </p>
+          </div>
+        )}
 
-    <div className="space-y-4">
-      <h3 className="text-xl font-bold text-slate-800">A Solução: Código Aberto e Impressão 3D</h3>
-      <p className="leading-relaxed">
-        O Gerador 3D de Química para Braille nasceu para ser uma ponte entre a tecnologia de prototipagem rápida e a educação inclusiva. Através desta plataforma <strong>Open Source</strong>, qualquer professor, escola ou laboratório maker pode digitar uma fórmula e gerar uma matriz tátil digital (STL) em segundos. O que antes demorava semanas para ser encomendado, agora pode ser fabricado na própria escola via impressão 3D, sob demanda e com baixo custo.
-      </p>
-    </div>
+        {/* ======================================================== */}
+        {/* ABA: EQUIPE */}
+        {/* ======================================================== */}
+        {activeTab === 'equipe' && (
+          <div className="space-y-6 fade-in">
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
+              <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+            </div>
 
-    <div className="space-y-4">
-      <h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3>
-      <p className="leading-relaxed">
-        Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.
-      </p>
-    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {EQUIPE.map((membro, index) => (
+                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 transition-all hover:shadow-md">
+                  
+                  {/* Foto do Membro ou Placeholder */}
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-100 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
+                    {membro.foto ? (
+                      <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-slate-400" />
+                    )}
+                  </div>
 
-    <div className="bg-slate-50 p-6 rounded-lg border border-slate-200 mt-8">
-      <h3 className="text-lg font-bold text-slate-800 mb-2">Sobre o Desenvolvedor</h3>
-      <p className="text-sm leading-relaxed">
-        Idealizado e desenvolvido por <strong>André Vinnicios S. Gaito</strong>, o projeto une paixão por química, programação e desenvolvimento de hardware. Movido pela filosofia do movimento maker, André busca transformar a forma como ferramentas educacionais são construídas, provando que a verdadeira inovação acontece quando a ciência é colocada ao alcance de todas as mãos.
-      </p>
-    </div>
+                  {/* Informações */}
+                  <div className="flex-1 space-y-2">
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
+                      <p className="text-sm font-semibold text-blue-600">{membro.titulo}</p>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      {membro.descricao}
+                    </p>
+                    
+                    {/* Links de Contato */}
+                    <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
+                      {membro.email && (
+                        <a href={`mailto:${membro.email}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                          <Mail className="w-3.5 h-3.5 mr-1" />
+                          E-mail
+                        </a>
+                      )}
+                      {membro.lattes && (
+                        <a href={membro.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                          <GraduationCap className="w-3.5 h-3.5 mr-1" />
+                          Lattes
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-  </div>
-)}
-
+        {/* OUTRAS ABAS (Placeholders) */}
         {activeTab === 'instrucoes' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
@@ -680,7 +820,14 @@ export default function App() {
         {activeTab === 'saiba-mais' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
-            <p>Área reservada para atualizações, parcerias e futuro do projeto.</p>
+            <p>Área reservada para documentações futuras.</p>
+          </div>
+        )}
+
+        {activeTab === 'parcerias' && (
+          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+            <h2 className="text-2xl font-bold text-slate-700 mb-4">Parcerias</h2>
+            <p>Área reservada para logos de instituições apoiadoras e formulário de contato para novas parcerias.</p>
           </div>
         )}
 
