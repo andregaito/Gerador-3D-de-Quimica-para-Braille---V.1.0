@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -142,7 +142,7 @@ const BRAILLE_MAP = {
 };
 
 // =========================================================
-// TRADUTOR REVERSO: MAPAS ISOLADOS PARA CONSCIÊNCIA DE CONTEXTO
+// TRADUTOR REVERSO: MAPAS ISOLADOS
 // =========================================================
 const getU = (dots) => {
   let code = 10240; 
@@ -172,8 +172,8 @@ Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
 const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
 const CHARGE_INDICATOR = getU(BRAILLE_MAP.chargeIndicator);
-// =========================================================
 
+// Componente Visual do Ponto Braille
 const Dot = ({ active }) => (
   <div className={`w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-[1.5px] sm:border-2 border-slate-200'}`} />
 );
@@ -194,6 +194,22 @@ const BrailleCell = ({ dots, label, description }) => {
   );
 };
 
+// Componente Slider para Opções Avançadas
+const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
+  <div className="flex flex-col">
+    <div className="flex justify-between items-center mb-1">
+      <label className="text-[11px] sm:text-xs font-bold text-slate-600 uppercase">{label}</label>
+      <span className="text-xs font-mono text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">{value} {unit}</span>
+    </div>
+    <input 
+      type="range" min={min} max={max} step={step} 
+      value={value} onChange={onChange} 
+      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+    />
+  </div>
+);
+
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
@@ -206,8 +222,19 @@ export default function App() {
   
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
-
   const [isListening, setIsListening] = useState(false);
+
+  // ESTADO DAS CONFIGURAÇÕES AVANÇADAS DO 3D
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [config3D, setConfig3D] = useState({
+    alturaPonto: 0.75,
+    diametroPonto: 1.9,
+    espessuraPlaca: 5.0,
+    distPontos: 2.5,
+    distCelas: 6.0,
+    distLinhas: 10.0,
+    margem: 2.0
+  });
 
   const parseBraille = (rawText) => {
     if (!rawText.trim()) {
@@ -297,7 +324,8 @@ export default function App() {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         try {
-          const modelo3D = gerarModeloJSCAD(blocosGerados);
+          // Passando o config3D para a geração da malha
+          const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
           const url = gerarUrlSTL(modelo3D);
           setStlUrl(url); 
         } catch (error) {
@@ -380,30 +408,25 @@ export default function App() {
       const isPrevLower = /[a-zçáàâãéêíóôõú]/.test(prevChar);
       const isPrevPrevUpper = /[A-Z]/.test(prevPrevChar);
       
-      // Reconhece um elemento químico isolado (Ex: Cl, Na, Mg) para não confundir com fim de palavra
       const isChemicalElement = isPrevLower && isPrevPrevUpper;
 
-      // 1. Ambiguidade: Letra Acentuada vs Símbolo (Ex: ê vs (, ã vs ))
       if (mappedLetter && mappedSym) {
         let useSymbol = true;
 
         if (isUpper) {
-          useSymbol = false; // Se precedido de ⠨, é a letra acentuada maiúscula (Ê, Ã)
+          useSymbol = false;
         } else {
           let nextBraille = text[i+1];
           let nextIsLowerLetter = nextBraille && REVERSE_LETTER_MAP[nextBraille] && !REVERSE_SYM_MAP[nextBraille] && nextBraille !== UPPER_INDICATOR && nextBraille !== NUMBER_INDICATOR;
 
-          // Se estiver cercado por letras minúsculas em ambos os lados, é uma palavra portuguesa
           if (isPrevLower && !isChemicalElement && (nextIsLowerLetter || !nextBraille || nextBraille === ' ' || nextBraille === '\n' || REVERSE_SYM_MAP[nextBraille])) {
             useSymbol = false;
-            
-            // Exceção química: estados (s), (l), (g), (aq)
             if (mappedSym === '(' && nextBraille) {
                let nL = REVERSE_LETTER_MAP[nextBraille];
                if (nL === 's' || nL === 'l' || nL === 'g' || nL === 'a') useSymbol = true;
             }
           } else if ((prevChar === ' ' || prevChar === '') && nextIsLowerLetter) {
-            useSymbol = false; // Palavra começando com acento (ex: água)
+            useSymbol = false;
           }
         }
 
@@ -416,14 +439,12 @@ export default function App() {
         continue;
       }
 
-      // 2. Ambiguidade: Símbolo vs Número Inferior (Ex: 1 vs ,, 6 vs +)
       if (mappedLowNum && mappedSym) {
         if (isCharge) {
           result += mappedSym; 
           if (mappedSym === '+' || mappedSym === '-') isCharge = false;
         } else {
           let useNumber = true;
-          // Se for uma palavra comum terminando ou espaçamento, é pontuação
           if ((isPrevLower && !isChemicalElement) || prevChar === ' ') {
             useNumber = false;
           }
@@ -432,7 +453,6 @@ export default function App() {
         continue;
       }
 
-      // 3. Casos Regulares sem Colisão Direta
       if (mappedLetter) {
         if (isNumber && numMap[mappedLetter]) {
           result += numMap[mappedLetter];
@@ -544,7 +564,9 @@ export default function App() {
 
       <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
+        {/* ======================================================== */}
         {/* ABA: GERADOR BRAILLE */}
+        {/* ======================================================== */}
         {activeTab === 'gerador' && (
           <div className="space-y-6 fade-in">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
@@ -578,43 +600,94 @@ export default function App() {
             </div>
 
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-              <form onSubmit={handleGenerate} className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
-                    Digite a fórmula do Íon, Composto Químico ou Texto
-                  </label>
-                  <textarea
-                    id="ionInput" 
-                    value={input}
-                    onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
-                    rows={2}
-                    placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
-                  />
-                  <button
-                    type="button"
-                    onClick={handleDictation}
-                    title="Ditar por voz (Microfone)"
-                    className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
-                      isListening 
-                        ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400' 
-                        : 'bg-slate-200 text-slate-600 hover:bg-blue-100 hover:text-blue-600'
-                    }`}
-                  >
-                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                  </button>
+              <form onSubmit={handleGenerate} className="flex flex-col gap-4">
+                
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <label htmlFor="ionInput" className="block text-sm font-medium text-slate-700 mb-1">
+                      Digite a fórmula do Íon, Composto Químico ou Texto
+                    </label>
+                    <textarea
+                      id="ionInput" 
+                      value={input}
+                      onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
+                      rows={2}
+                      placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
+                    />
+                    <button
+                      type="button"
+                      onClick={handleDictation}
+                      title="Ditar por voz (Microfone)"
+                      className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
+                        isListening 
+                          ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400' 
+                          : 'bg-slate-200 text-slate-600 hover:bg-blue-100 hover:text-blue-600'
+                      }`}
+                    >
+                      {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <button
+                      type="submit" disabled={isGenerating}
+                      className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2 h-[52px] ${
+                        isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                      }`}
+                    >
+                      <Settings className={`w-5 h-5 ${isGenerating ? 'animate-spin' : ''}`} />
+                      <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-end">
-                  <button
-                    type="submit" disabled={isGenerating}
-                    className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2 h-[52px] ${
-                      isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                    }`}
+
+                {/* OPÇÕES AVANÇADAS PARA A GERAÇÃO DO STL */}
+                <div className="border-t border-slate-200 pt-4 mt-2">
+                  <button 
+                    type="button" 
+                    onClick={() => setShowAdvanced(!showAdvanced)} 
+                    className="flex items-center text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
                   >
-                    <Settings className={`w-5 h-5 ${isGenerating ? 'animate-spin' : ''}`} />
-                    <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
+                    <Sliders className="w-4 h-4 mr-2" />
+                    Opções Avançadas de Impressão 3D
+                    {showAdvanced ? <ChevronUp className="w-4 h-4 ml-1" /> : <ChevronDown className="w-4 h-4 ml-1" />}
                   </button>
+                  
+                  {showAdvanced && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
+                      <ConfigSlider 
+                        label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Espessura da Placa" value={config3D.espessuraPlaca} min="1.0" max="10.0" step="0.5" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Distância dos Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Distância entre Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Distância entre Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Margem da Placa" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} 
+                      />
+                    </div>
+                  )}
                 </div>
+
               </form>
             </div>
 
