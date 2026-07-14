@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -35,7 +35,7 @@ const EQUIPE = [
     foto: fotoAndreGaito
   },
   {
-    nome: "Ricardo Cunha Michel",
+    nome: "Prof. Dr. Ricardo Cunha Michel",
     titulo: "Professor Doutor em Química",
     descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
     email: "michel@iq.ufrj.br",
@@ -43,8 +43,8 @@ const EQUIPE = [
     foto: fotoRicardoMichel
   },
   {
-    nome: "Fernanda Das Neves Costa",
-    titulo: "Doutora em Química",
+    nome: "Dra. Fernanda Das Neves Costa",
+    titulo: "Pesquisadora e Coordenadora",
     descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
     email: "FNCosta@IPPN.UFRJ.br",
     lattes: "http://lattes.cnpq.br/4349970710727785",
@@ -324,7 +324,6 @@ export default function App() {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         try {
-          // Passando o config3D para a geração da malha
           const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
           const url = gerarUrlSTL(modelo3D);
           setStlUrl(url); 
@@ -703,7 +702,7 @@ export default function App() {
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
+                    <span className="hidden sm:inline">Baixar STL</span>
                     <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
@@ -865,6 +864,41 @@ export default function App() {
           </div>
         )}
 
+        {/* ABA: PARCERIAS E EXPANSÃO */}
+        {activeTab === 'parcerias' && (
+          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
+            <div className="flex justify-center mb-6">
+              <div className="p-5 bg-blue-50 rounded-full text-blue-600 shadow-inner">
+                <Handshake className="w-14 h-14" />
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold text-slate-800 mb-6 tracking-tight">Parcerias e Expansão</h2>
+            
+            <div className="max-w-3xl mx-auto space-y-6 text-slate-600 leading-relaxed text-left sm:text-center">
+              <p>
+                O projeto <strong>Química ao Alcance das Mãos</strong> visa transformar o ensino e a aprendizagem da química através da aplicação de ferramentas inclusivas e tecnologias inovadoras, como a impressão 3D e o design aberto de materiais didáticos.
+              </p>
+              <p>
+                Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
+              </p>
+              <p className="font-medium text-slate-700 bg-slate-50 p-4 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
+                Qualquer escola, instituição ou entidade educacional que tenha interesse em aplicar os nossos materiais pedagógicos, testar o gerador ou firmar algum tipo de colaboração e parceria conosco é mais que bem-vinda!
+              </p>
+            </div>
+
+            <div className="mt-10">
+              <a 
+                href="mailto:andrevinniciosgaito@gmail.com?subject=Interesse%20em%20Parceria%20-%20Química%20ao%20Alcance%20das%20Mãos" 
+                className="inline-flex items-center px-8 py-4 bg-[#0e52c2] hover:bg-blue-800 text-white text-lg font-bold rounded-lg shadow-md transition-all transform hover:-translate-y-1"
+              >
+                <Mail className="w-6 h-6 mr-3" />
+                Entre em Contato Conosco
+              </a>
+              <p className="mt-4 text-sm text-slate-500">Ou envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong></p>
+            </div>
+          </div>
+        )}
+
         {/* ABA: EQUIPE */}
         {activeTab === 'equipe' && (
           <div className="space-y-6 fade-in">
@@ -951,12 +985,6 @@ export default function App() {
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
             <p>Área reservada para documentações futuras.</p>
-          </div>
-        )}
-        {activeTab === 'parcerias' && (
-          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
-            <h2 className="text-2xl font-bold text-slate-700 mb-4">Parcerias</h2>
-            <p>Área reservada para logos de instituições apoiadoras e formulário de contato para novas parcerias.</p>
           </div>
         )}
 
