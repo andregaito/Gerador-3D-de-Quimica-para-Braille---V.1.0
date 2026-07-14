@@ -13,7 +13,7 @@ import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transpare
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
-// IMPORTAÇÃO DAS FOTOS DA EQUIPE (CORRIGIDO EXTENSÕES E VARIÁVEIS)
+// IMPORTAÇÃO DAS FOTOS DA EQUIPE 
 // =========================================================
 import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
 import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
@@ -35,7 +35,7 @@ const EQUIPE = [
     foto: fotoAndreGaito
   },
   {
-    nome: "Prof. Dr. Ricardo Cunha Michel",
+    nome: "Ricardo Cunha Michel",
     titulo: "Professor Doutor em Química",
     descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
     email: "michel@iq.ufrj.br",
@@ -43,35 +43,35 @@ const EQUIPE = [
     foto: fotoRicardoMichel
   },
   {
-    nome: "Dra. Fernanda Das Neves Costa",
-    titulo: "Pesquisadora e Coordenadora",
+    nome: "Fernanda Das Neves Costa",
+    titulo: "Doutora em Química",
     descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
     email: "FNCosta@IPPN.UFRJ.br",
     lattes: "http://lattes.cnpq.br/4349970710727785",
     foto: fotoFernandaNeves
   },
   {
-    nome: "Hugo Reis",
-    titulo: "Membro do Projeto",
-    descricao: "Atuação no desenvolvimento e pesquisa associados ao projeto de inclusão no ensino de química.",
-    email: "",
-    lattes: "",
-    foto: fotoHugoReis
+   nome: "Raíssa Ecard da Costa Cruz",
+    titulo: "Doutoranda em Química",
+    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento estratégico das atividades de campo, co-mediação nas intervenções educacionais in loco e suporte metodológico na sistematização dos dados coletados.",
+    email: "raissaecard@pos.iq.ufrj.br",
+    lattes: "http://lattes.cnpq.br/5822903514342446",
+    foto: fotoRaissaEcard
   },
   {
-    nome: "Raíssa Ecard",
-    titulo: "Membro do Projeto",
-    descricao: "Apoio na validação, modelagem e adaptação dos recursos educacionais.",
-    email: "",
-    lattes: "",
-    foto: fotoRaissaEcard
+    nome: "Hugo Costa Reis",
+    titulo: "Doutorando em Química",
+    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais junto aos estudantes e apoio na análise qualitativa das interações.",
+    email: "hugo.reis@eq.frj.br",
+    lattes: "http://lattes.cnpq.br/3500602218294576",
+    foto: fotoHugoReis
   },
   {
     nome: "Pedro Xavier",
     titulo: "Membro do Projeto",
     descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
-    email: "",
-    lattes: "",
+    email: "pedrofariax@ima.ufrj.br",
+    lattes: "http://lattes.cnpq.br/3367215215251168",
     foto: fotoPedroXavier
   }
 ];
@@ -141,6 +141,9 @@ const BRAILLE_MAP = {
   chargeIndicator: [5], numberSign: [3, 4, 5, 6], plus: [2, 3, 5], minus: [3, 6]
 };
 
+// =========================================================
+// NOVA LÓGICA DO TRADUTOR REVERSO (Context-Aware)
+// =========================================================
 const getU = (dots) => {
   let code = 10240; 
   if (dots) {
@@ -149,30 +152,28 @@ const getU = (dots) => {
   return String.fromCharCode(code);
 };
 
-const REVERSE_MAP = {};
-
+// Mapeamento isolado para evitar sobrescritas incorretas
+const REVERSE_LETTER_MAP = {};
 Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
-  REVERSE_MAP[getU(dots)] = { type: 'letter', char };
-});
-Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
-  REVERSE_MAP[getU(dots)] = { type: 'symbol', char };
-});
-Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
-  const u = getU(dots);
-  if (REVERSE_MAP[u] && REVERSE_MAP[u].type === 'symbol') {
-    if (char !== '1') {
-      REVERSE_MAP[u] = { type: 'lowerNumber', char };
-    }
-  } else {
-    REVERSE_MAP[u] = { type: 'lowerNumber', char };
-  }
+  REVERSE_LETTER_MAP[getU(dots)] = char;
 });
 
-REVERSE_MAP[getU(BRAILLE_MAP.plus)] = { type: 'symbol', char: '+' };
-REVERSE_MAP[getU(BRAILLE_MAP.minus)] = { type: 'symbol', char: '-' };
+const REVERSE_SYM_MAP = {};
+Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
+  REVERSE_SYM_MAP[getU(dots)] = char;
+});
+REVERSE_SYM_MAP[getU(BRAILLE_MAP.plus)] = '+';
+REVERSE_SYM_MAP[getU(BRAILLE_MAP.minus)] = '-';
+
+const REVERSE_LOW_NUM_MAP = {};
+Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
+  REVERSE_LOW_NUM_MAP[getU(dots)] = char;
+});
 
 const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
+const CHARGE_INDICATOR = getU(BRAILLE_MAP.chargeIndicator);
+// =========================================================
 
 const Dot = ({ active }) => (
   <div className={`w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-[1.5px] sm:border-2 border-slate-200'}`} />
@@ -206,7 +207,6 @@ export default function App() {
   
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
-
   const [isListening, setIsListening] = useState(false);
 
   const parseBraille = (rawText) => {
@@ -339,18 +339,22 @@ export default function App() {
     let result = '';
     let isUpper = false;
     let isNumber = false;
+    let isCharge = false;
     const numMap = {'a':'1','b':'2','c':'3','d':'4','e':'5','f':'6','g':'7','h':'8','i':'9','j':'0'};
 
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
+      
       if (char === ' ' || char === '⠀') {
         result += ' ';
         isNumber = false;
+        isCharge = false;
         continue;
       }
       if (char === '\n') {
         result += '\n';
         isNumber = false;
+        isCharge = false;
         continue;
       }
       if (char === UPPER_INDICATOR) {
@@ -361,16 +365,38 @@ export default function App() {
         isNumber = true;
         continue;
       }
-      const mapped = REVERSE_MAP[char];
-      if (mapped) {
-        if (isNumber && mapped.type === 'letter' && numMap[mapped.char]) {
-          result += numMap[mapped.char];
-        } else if (mapped.type === 'letter') {
-          result += isUpper ? mapped.char.toUpperCase() : mapped.char;
-          isUpper = false;
+      if (char === CHARGE_INDICATOR) {
+        isCharge = true;
+        continue;
+      }
+
+      // 1. Resolve Letras e Números Padrão (⠼)
+      if (REVERSE_LETTER_MAP[char]) {
+        const mappedChar = REVERSE_LETTER_MAP[char];
+        if (isNumber && numMap[mappedChar]) {
+          result += numMap[mappedChar];
         } else {
-          result += mapped.char;
+          result += isUpper ? mappedChar.toUpperCase() : mappedChar;
+          isUpper = false;
+          isNumber = false; // Se uma letra não-numérica aparece, quebra a sequência de números
         }
+        continue;
+      }
+
+      // 2. Resolve Ambiguidade (Números Inferiores vs Símbolos)
+      const lowNumChar = REVERSE_LOW_NUM_MAP[char];
+      const symChar = REVERSE_SYM_MAP[char];
+
+      if (lowNumChar && symChar) {
+        if (isCharge) {
+          result += symChar; // Dentro do indicador de carga (⠢), + ou -
+        } else {
+          result += lowNumChar; // Na química, preferência fortíssima por números fora de carga
+        }
+      } else if (lowNumChar) {
+        result += lowNumChar;
+      } else if (symChar) {
+        result += symChar;
       } else {
         result += char; 
       }
@@ -389,7 +415,6 @@ export default function App() {
       alert("Seu navegador não suporta digitação por voz nativamente. Tente usar o Google Chrome ou Edge.");
       return;
     }
-
     if (isListening) return;
 
     const recognition = new SpeechRecognition();
@@ -723,7 +748,7 @@ export default function App() {
           <div className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores que tornam o projeto possível.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
