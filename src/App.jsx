@@ -53,7 +53,7 @@ const EQUIPE = [
   {
    nome: "Raíssa Ecard da Costa Cruz",
     titulo: "Doutoranda em Química",
-    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento estratégico das atividades de campo, co-mediação nas intervenções educacionais in loco e suporte metodológico na sistematização dos dados coletados.",
+    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.",
     email: "raissaecard@pos.iq.ufrj.br",
     lattes: "http://lattes.cnpq.br/5822903514342446",
     foto: fotoRaissaEcard
@@ -61,7 +61,7 @@ const EQUIPE = [
   {
     nome: "Hugo Costa Reis",
     titulo: "Doutorando em Química",
-    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais junto aos estudantes e apoio na análise qualitativa das interações.",
+    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.",
     email: "hugo.reis@eq.frj.br",
     lattes: "http://lattes.cnpq.br/3500602218294576",
     foto: fotoHugoReis
@@ -69,7 +69,7 @@ const EQUIPE = [
   {
     nome: "Pedro Xavier",
     titulo: "Membro do Projeto",
-    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva.",
+    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.",
     email: "pedrofariax@ima.ufrj.br",
     lattes: "http://lattes.cnpq.br/3367215215251168",
     foto: fotoPedroXavier
@@ -142,7 +142,7 @@ const BRAILLE_MAP = {
 };
 
 // =========================================================
-// NOVA LÓGICA DO TRADUTOR REVERSO (Context-Aware)
+// TRADUTOR REVERSO: MAPAS ISOLADOS PARA CONSCIÊNCIA DE CONTEXTO
 // =========================================================
 const getU = (dots) => {
   let code = 10240; 
@@ -152,7 +152,6 @@ const getU = (dots) => {
   return String.fromCharCode(code);
 };
 
-// Mapeamento isolado para evitar sobrescritas incorretas
 const REVERSE_LETTER_MAP = {};
 Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
   REVERSE_LETTER_MAP[getU(dots)] = char;
@@ -207,6 +206,7 @@ export default function App() {
   
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+
   const [isListening, setIsListening] = useState(false);
 
   const parseBraille = (rawText) => {
@@ -370,33 +370,82 @@ export default function App() {
         continue;
       }
 
-      // 1. Resolve Letras e Números Padrão (⠼)
-      if (REVERSE_LETTER_MAP[char]) {
-        const mappedChar = REVERSE_LETTER_MAP[char];
-        if (isNumber && numMap[mappedChar]) {
-          result += numMap[mappedChar];
+      const mappedLetter = REVERSE_LETTER_MAP[char];
+      const mappedSym = REVERSE_SYM_MAP[char];
+      const mappedLowNum = REVERSE_LOW_NUM_MAP[char];
+
+      const prevChar = result.slice(-1);
+      const prevPrevChar = result.length > 1 ? result.slice(-2, -1) : ' ';
+      
+      const isPrevLower = /[a-zçáàâãéêíóôõú]/.test(prevChar);
+      const isPrevPrevUpper = /[A-Z]/.test(prevPrevChar);
+      
+      // Reconhece um elemento químico isolado (Ex: Cl, Na, Mg) para não confundir com fim de palavra
+      const isChemicalElement = isPrevLower && isPrevPrevUpper;
+
+      // 1. Ambiguidade: Letra Acentuada vs Símbolo (Ex: ê vs (, ã vs ))
+      if (mappedLetter && mappedSym) {
+        let useSymbol = true;
+
+        if (isUpper) {
+          useSymbol = false; // Se precedido de ⠨, é a letra acentuada maiúscula (Ê, Ã)
         } else {
-          result += isUpper ? mappedChar.toUpperCase() : mappedChar;
+          let nextBraille = text[i+1];
+          let nextIsLowerLetter = nextBraille && REVERSE_LETTER_MAP[nextBraille] && !REVERSE_SYM_MAP[nextBraille] && nextBraille !== UPPER_INDICATOR && nextBraille !== NUMBER_INDICATOR;
+
+          // Se estiver cercado por letras minúsculas em ambos os lados, é uma palavra portuguesa
+          if (isPrevLower && !isChemicalElement && (nextIsLowerLetter || !nextBraille || nextBraille === ' ' || nextBraille === '\n' || REVERSE_SYM_MAP[nextBraille])) {
+            useSymbol = false;
+            
+            // Exceção química: estados (s), (l), (g), (aq)
+            if (mappedSym === '(' && nextBraille) {
+               let nL = REVERSE_LETTER_MAP[nextBraille];
+               if (nL === 's' || nL === 'l' || nL === 'g' || nL === 'a') useSymbol = true;
+            }
+          } else if ((prevChar === ' ' || prevChar === '') && nextIsLowerLetter) {
+            useSymbol = false; // Palavra começando com acento (ex: água)
+          }
+        }
+
+        if (useSymbol) {
+          result += mappedSym;
+        } else {
+          result += isUpper ? mappedLetter.toUpperCase() : mappedLetter;
           isUpper = false;
-          isNumber = false; // Se uma letra não-numérica aparece, quebra a sequência de números
         }
         continue;
       }
 
-      // 2. Resolve Ambiguidade (Números Inferiores vs Símbolos)
-      const lowNumChar = REVERSE_LOW_NUM_MAP[char];
-      const symChar = REVERSE_SYM_MAP[char];
-
-      if (lowNumChar && symChar) {
+      // 2. Ambiguidade: Símbolo vs Número Inferior (Ex: 1 vs ,, 6 vs +)
+      if (mappedLowNum && mappedSym) {
         if (isCharge) {
-          result += symChar; // Dentro do indicador de carga (⠢), + ou -
+          result += mappedSym; 
+          if (mappedSym === '+' || mappedSym === '-') isCharge = false;
         } else {
-          result += lowNumChar; // Na química, preferência fortíssima por números fora de carga
+          let useNumber = true;
+          // Se for uma palavra comum terminando ou espaçamento, é pontuação
+          if ((isPrevLower && !isChemicalElement) || prevChar === ' ') {
+            useNumber = false;
+          }
+          result += useNumber ? mappedLowNum : mappedSym;
         }
-      } else if (lowNumChar) {
-        result += lowNumChar;
-      } else if (symChar) {
-        result += symChar;
+        continue;
+      }
+
+      // 3. Casos Regulares sem Colisão Direta
+      if (mappedLetter) {
+        if (isNumber && numMap[mappedLetter]) {
+          result += numMap[mappedLetter];
+        } else {
+          result += isUpper ? mappedLetter.toUpperCase() : mappedLetter;
+          isUpper = false;
+          isNumber = false;
+        }
+      } else if (mappedLowNum) {
+        result += mappedLowNum;
+      } else if (mappedSym) {
+        result += mappedSym;
+        if (isCharge && (mappedSym === '+' || mappedSym === '-')) isCharge = false;
       } else {
         result += char; 
       }
@@ -748,7 +797,7 @@ export default function App() {
           <div className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores que tornam o projeto possível.</p>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
