@@ -103,8 +103,8 @@ const LinkedinIcon = ({ className }) => (
   </svg>
 );
 
-// O STL gerado possui seu "Up" no eixo Z (Padrão Engenharia). 
-// Ao renderizar no Three.js, rotacionamos -90° (Math.PI / 2) em X para o Z virar o "Cima" (Eixo Y na Web).
+// O STL gerado possui seu "Up" no eixo Z (Padrão CAD). 
+// Rotacionamos -90° em X para alinhar o Z do objeto com o Y da Web.
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
   return (
@@ -729,24 +729,24 @@ export default function App() {
                     />
                   </button>
 
-                  <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
-                    <Suspense fallback={null}>
-                      <Environment preset="city" />
-                      <ambientLight intensity={0.5} />
-                      <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
-                      
-                      {/* O componente Bounds foca e dá zoom exato no modelo, o Center encosta a base do modelo no chão (Eixo Y=0) */}
-                      <Bounds fit clip observe margin={1.2}>
-                        <Center bottom position={[0, 0, 0]}>
-                          <StlModel url={stlUrl} />
-                        </Center>
-                      </Bounds>
-                    </Suspense>
-                    
-                    <axesHelper args={[30]} />
-                    <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
-                    <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
-                  </Canvas>
+<Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
+  <Suspense fallback={null}>
+    <Environment preset="city" />
+    <ambientLight intensity={0.5} />
+    <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
+    
+    {/* O Bounds centraliza e dá zoom, o Center bottom garante que a base da peça toque o plano 0 */}
+    <Bounds fit clip observe margin={1.2}>
+      <Center bottom>
+        <StlModel url={stlUrl} />
+      </Center>
+    </Bounds>
+  </Suspense>
+  
+  <axesHelper args={[30]} />
+  <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
+  <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
+</Canvas>
                   
                   <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">
                     Arraste para girar • Role o mouse para aproximar
