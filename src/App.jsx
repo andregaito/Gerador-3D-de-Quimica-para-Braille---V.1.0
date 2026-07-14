@@ -3,7 +3,8 @@ import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Tras
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
-import { Stage, OrbitControls } from '@react-three/drei';
+// NOVA IMPORTAÇÃO: Trocamos o Stage por Center, Bounds e Environment para controle absoluto
+import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 
@@ -13,7 +14,7 @@ import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transpare
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
-// IMPORTAÇÃO DAS FOTOS DA EQUIPE 
+// IMPORTAÇÃO DAS FOTOS DA EQUIPE
 // =========================================================
 import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
 import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
@@ -102,10 +103,12 @@ const LinkedinIcon = ({ className }) => (
   </svg>
 );
 
+// O STL gerado possui seu "Up" no eixo Z (Padrão Engenharia). 
+// Ao renderizar no Three.js, rotacionamos -90° (Math.PI / 2) em X para o Z virar o "Cima" (Eixo Y na Web).
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
   return (
-    <mesh geometry={geom}>
+    <mesh geometry={geom} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
       <meshStandardMaterial color="#3b82f6" roughness={0.4} metalness={0.1} />
     </mesh>
   );
@@ -142,7 +145,7 @@ const BRAILLE_MAP = {
 };
 
 // =========================================================
-// TRADUTOR REVERSO: MAPAS ISOLADOS
+// TRADUTOR REVERSO
 // =========================================================
 const getU = (dots) => {
   let code = 10240; 
@@ -173,7 +176,6 @@ const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
 const CHARGE_INDICATOR = getU(BRAILLE_MAP.chargeIndicator);
 
-// Componente Visual do Ponto Braille
 const Dot = ({ active }) => (
   <div className={`w-2.5 h-2.5 sm:w-4 sm:h-4 rounded-full transition-colors duration-300 ${active ? 'bg-slate-800 shadow-sm' : 'bg-transparent border-[1.5px] sm:border-2 border-slate-200'}`} />
 );
@@ -194,7 +196,7 @@ const BrailleCell = ({ dots, label, description }) => {
   );
 };
 
-// Componente Slider para Opções Avançadas
+// Componente Slider Limpo para o Painel Avançado
 const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-1">
@@ -209,7 +211,6 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
   </div>
 );
 
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
@@ -222,6 +223,7 @@ export default function App() {
   
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
+
   const [isListening, setIsListening] = useState(false);
 
   // ESTADO DAS CONFIGURAÇÕES AVANÇADAS DO 3D
@@ -230,6 +232,7 @@ export default function App() {
     alturaPonto: 0.75,
     diametroPonto: 1.9,
     espessuraPlaca: 5.0,
+    borda: 0.0,
     distPontos: 2.5,
     distCelas: 6.0,
     distLinhas: 10.0,
@@ -406,7 +409,6 @@ export default function App() {
       
       const isPrevLower = /[a-zçáàâãéêíóôõú]/.test(prevChar);
       const isPrevPrevUpper = /[A-Z]/.test(prevPrevChar);
-      
       const isChemicalElement = isPrevLower && isPrevPrevUpper;
 
       if (mappedLetter && mappedSym) {
@@ -641,7 +643,7 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* OPÇÕES AVANÇADAS PARA A GERAÇÃO DO STL */}
+                {/* MENU OCULTO: OPÇÕES AVANÇADAS */}
                 <div className="border-t border-slate-200 pt-4 mt-2">
                   <button 
                     type="button" 
@@ -654,7 +656,7 @@ export default function App() {
                   </button>
                   
                   {showAdvanced && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
                       <ConfigSlider 
                         label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} 
@@ -664,23 +666,27 @@ export default function App() {
                         onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} 
                       />
                       <ConfigSlider 
-                        label="Espessura da Placa" value={config3D.espessuraPlaca} min="1.0" max="10.0" step="0.5" unit="mm" 
+                        label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} 
                       />
                       <ConfigSlider 
-                        label="Distância dos Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" 
+                        label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" 
+                        onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} 
+                      />
+                      <ConfigSlider 
+                        label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} 
                       />
                       <ConfigSlider 
-                        label="Distância entre Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" 
+                        label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} 
                       />
                       <ConfigSlider 
-                        label="Distância entre Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" 
+                        label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} 
                       />
                       <ConfigSlider 
-                        label="Margem da Placa" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" 
+                        label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} 
                       />
                     </div>
@@ -690,6 +696,7 @@ export default function App() {
               </form>
             </div>
 
+            {/* VISUALIZADOR 3D CORRIGIDO: BOUNDS E CENTER BOTTOM */}
             {stlUrl && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
                 <div className="flex justify-between items-center mb-4">
@@ -702,7 +709,7 @@ export default function App() {
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Baixar STL</span>
+                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
                     <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
@@ -724,13 +731,21 @@ export default function App() {
 
                   <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
                     <Suspense fallback={null}>
-                      <Stage environment="city" intensity={0.5} adjustCamera>
-                        <StlModel url={stlUrl} />
-                      </Stage>
+                      <Environment preset="city" />
+                      <ambientLight intensity={0.5} />
+                      <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
+                      
+                      {/* O componente Bounds foca e dá zoom exato no modelo, o Center encosta a base do modelo no chão (Eixo Y=0) */}
+                      <Bounds fit clip observe margin={1.2}>
+                        <Center bottom position={[0, 0, 0]}>
+                          <StlModel url={stlUrl} />
+                        </Center>
+                      </Bounds>
                     </Suspense>
+                    
                     <axesHelper args={[30]} />
-                    <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, -0.1, 0]} />
-                    <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} enablePan={true} enableZoom={true} />
+                    <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
+                    <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
                   </Canvas>
                   
                   <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">
@@ -836,7 +851,9 @@ export default function App() {
           </div>
         )}
 
+        {/* ======================================================== */}
         {/* ABA: SOBRE O PROJETO */}
+        {/* ======================================================== */}
         {activeTab === 'sobre' && (
           <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
             <div className="border-b border-slate-100 pb-6">
@@ -864,7 +881,9 @@ export default function App() {
           </div>
         )}
 
-        {/* ABA: PARCERIAS E EXPANSÃO */}
+        {/* ======================================================== */}
+        {/* ABA: PARCERIAS */}
+        {/* ======================================================== */}
         {activeTab === 'parcerias' && (
           <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
             <div className="flex justify-center mb-6">
@@ -899,7 +918,9 @@ export default function App() {
           </div>
         )}
 
+        {/* ======================================================== */}
         {/* ABA: EQUIPE */}
+        {/* ======================================================== */}
         {activeTab === 'equipe' && (
           <div className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
@@ -946,7 +967,9 @@ export default function App() {
           </div>
         )}
 
+        {/* ======================================================== */}
         {/* ABA: ACHOU UM BUG? */}
+        {/* ======================================================== */}
         {activeTab === 'bug' && (
           <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
             <div className="flex justify-center mb-6">
@@ -974,13 +997,19 @@ export default function App() {
           </div>
         )}
 
-        {/* OUTRAS ABAS (Placeholders) */}
+        {/* ======================================================== */}
+        {/* ABA: INSTRUÇÕES (Placeholder) */}
+        {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
             <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
           </div>
         )}
+
+        {/* ======================================================== */}
+        {/* ABA: SAIBA MAIS (Placeholder) */}
+        {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
           <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
