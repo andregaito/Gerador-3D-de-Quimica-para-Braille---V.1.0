@@ -1,16 +1,16 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
-// Importações de Imagens Principais
+
+// Importações de Imagens Principais e Logos Dinâmicas
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
-import logoRoxo from './assets/Quimica ao Alcanse das maos logo transparente ROXO.png'; // NOVA LOGO ROXA IMPORTADA
+import logoRoxo from './assets/Quimica ao Alcanse das maos logo transparente ROXO.png';
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
@@ -212,15 +212,17 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
   </div>
 );
 
-// TESTADOR DE PALETA DE CORES
+// =========================================================
+// TESTADOR DE PALETA DE CORES EM TEMPO REAL
+// =========================================================
 const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) => {
   const handleSwitch = () => {
     if (!modoRoxo) {
       setModoRoxo(true);
-      setCorPrincipal('#7e22ce'); // Roxo
+      setCorPrincipal('#7e22ce');
     } else {
       setModoRoxo(false);
-      setCorPrincipal('#0e52c2'); // Azul Default
+      setCorPrincipal('#0e52c2');
     }
   };
 
@@ -268,15 +270,13 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
   );
 };
 
-
 // =========================================================
 // MOTOR INTELIGENTE DE VALIDAÇÃO E SUGESTÃO QUÍMICA (NOX / VALÊNCIA)
 // =========================================================
 const checarSugestaoQuimica = (texto) => {
   const limpo = texto.trim();
-  if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null; // Ignora textos longos ou frases
+  if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null;
 
-  // 1. Dicionário de NOX Fixos e Frequentes (Íons simples)
   const noxFixos = {
     'Na': ['Na+'], 'K': ['K+'], 'Li': ['Li+'], 'Ag': ['Ag+'],
     'Ca': ['Ca2+'], 'Mg': ['Mg2+'], 'Ba': ['Ba2+'], 'Zn': ['Zn2+'],
@@ -285,7 +285,6 @@ const checarSugestaoQuimica = (texto) => {
     'O': ['O2-'], 'S': ['S2-']
   };
 
-  // 2. Dicionário de Substâncias Clássicas e seus erros comuns
   const compostosClassicos = {
     'Fe(OH)': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)1': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)4': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)5': ['Fe(OH)2', 'Fe(OH)3'],
     'Cu(OH)': ['CuOH', 'Cu(OH)2'], 'Cu(OH)3': ['CuOH', 'Cu(OH)2'],
@@ -297,7 +296,6 @@ const checarSugestaoQuimica = (texto) => {
     'H2O22': ['H2O2', 'H2O']
   };
 
-  // Verificação direta no dicionário de compostos clássicos
   for (let errado in compostosClassicos) {
     if (limpo.toUpperCase() === errado.toUpperCase()) {
       return {
@@ -307,13 +305,11 @@ const checarSugestaoQuimica = (texto) => {
     }
   }
 
-  // Verificação de NOX fixo para átomos isolados com carga
   const matchIon = limpo.match(/^([A-Z][a-z]?)([0-9]*)([+-])([0-9]*)$/);
   if (matchIon) {
     const [, elemento, numAntes, sinal, numDepois] = matchIon;
     const numeroCarga = numAntes || numDepois || '1';
     
-    // Regra 1: Inversão ou digitação desnecessária do número 1 (ex: Na+1, Na1+, Cl-1)
     if (numeroCarga === '1') {
       const formCorreta = `${elemento}${sinal}`;
       if (limpo !== formCorreta && noxFixos[elemento] && noxFixos[elemento].includes(formCorreta)) {
@@ -324,7 +320,6 @@ const checarSugestaoQuimica = (texto) => {
       }
     }
 
-    // Regra 2: Carga errada para átomo de NOX fixo (ex: Na+2, Ca+3, Al+)
     if (noxFixos[elemento]) {
       const corretaLista = noxFixos[elemento];
       if (!corretaLista.some(c => c === limpo || c === `${elemento}${numeroCarga}${sinal}`)) {
@@ -335,7 +330,6 @@ const checarSugestaoQuimica = (texto) => {
       }
     }
 
-    // Regra 3: Inversão de grafia (ex: Fe+2 ao invés de Fe2+)
     if (numDepois && !numAntes) {
       return {
         mensagem: `A convenção da IUPAC recomenda colocar o número antes do sinal na carga do íon.`,
@@ -347,7 +341,7 @@ const checarSugestaoQuimica = (texto) => {
   return null;
 };
 
-// COMPONENTE VISUAL: CAIXA DE ALERTA AMARELA
+// COMPONENTE VISUAL: CAIXA DE ALERTA DE SUGESTÃO QUÍMICA
 const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
   if (!sugestaoDados) return null;
 
@@ -355,7 +349,7 @@ const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
     <div 
       role="alert" 
       aria-live="polite"
-      className="mt-3 bg-amber-50/90 border-l-4 border-amber-500 p-3 rounded-r-lg shadow-sm flex items-start space-x-3 text-left transition-all animate-fadeIn"
+      className="mt-3 bg-amber-50/90 border-l-4 border-amber-500 p-3 rounded-r-lg shadow-sm flex items-start space-x-3 text-left transition-all"
     >
       <div className="p-1 bg-amber-500/10 rounded-full text-amber-600 flex-shrink-0 mt-0.5">
         <Info className="w-5 h-5" />
@@ -382,7 +376,6 @@ const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
   );
 };
 
-
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
@@ -400,14 +393,6 @@ export default function App() {
   const [translatedText, setTranslatedText] = useState('');
 
   const [isListening, setIsListening] = useState(false);
-  
-  // CALCULA A SUGESTÃO EM TEMPO REAL
-  const sugestaoQuimica = checarSugestaoQuimica(input);
-  // FUNÇÃO QUE CORRIGE AUTOMATICAMENTE AO CLICAR NA SUGESTÃO
-  const handleAplicarSugestao = (novaFormula) => {
-    setInput(novaFormula);
-    parseBraille(novaFormula);
-  };
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config3D, setConfig3D] = useState({
@@ -420,6 +405,13 @@ export default function App() {
     distLinhas: 10.0,
     margem: 2.0
   });
+
+  const sugestaoQuimica = checarSugestaoQuimica(input);
+
+  const handleAplicarSugestao = (novaFormula) => {
+    setInput(novaFormula);
+    parseBraille(novaFormula);
+  };
 
   const parseBraille = (rawText) => {
     if (!rawText.trim()) {
@@ -702,7 +694,6 @@ export default function App() {
       
       <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 shadow-sm z-10 relative">
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
-          {/* LOGO DINÂMICA: Troca a imagem de acordo com o modoRoxo */}
           <img 
             src={modoRoxo ? logoRoxo : logoPrincipal} 
             alt="Logo Química ao Alcance das Mãos" 
@@ -849,6 +840,12 @@ export default function App() {
                     </button>
                   </div>
                 </div>
+
+                {/* CAIXA DE ALERTA DE SUGESTÃO QUÍMICA (IUPAC) */}
+                <AlertaSugestao 
+                  sugestaoDados={sugestaoQuimica} 
+                  aoAplicarSugestao={handleAplicarSugestao} 
+                />
 
                 {/* MENU OCULTO: OPÇÕES AVANÇADAS */}
                 <div className="border-t border-slate-200 pt-4 mt-2">
@@ -1160,7 +1157,7 @@ export default function App() {
           <div id="painel-equipe" role="tabpanel" aria-label="Nossa Equipe" className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores que tornam o projeto possível.</p>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1228,7 +1225,7 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Ou envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong>
+              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
