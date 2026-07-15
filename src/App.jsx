@@ -3,7 +3,6 @@ import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Tras
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
-// NOVA IMPORTAÇÃO: Trocamos o Stage por Center, Bounds e Environment para controle absoluto
 import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
@@ -52,7 +51,7 @@ const EQUIPE = [
     foto: fotoFernandaNeves
   },
   {
-   nome: "Raíssa Ecard da Costa Cruz",
+    nome: "Raíssa Ecard da Costa Cruz",
     titulo: "Doutoranda em Química",
     descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.",
     email: "raissaecard@pos.iq.ufrj.br",
@@ -103,8 +102,6 @@ const LinkedinIcon = ({ className }) => (
   </svg>
 );
 
-// O STL gerado possui seu "Up" no eixo Z (Padrão Engenharia). 
-// Ao renderizar no Three.js, rotacionamos -90° (Math.PI / 2) em X para o Z virar o "Cima" (Eixo Y na Web).
 const StlModel = ({ url }) => {
   const geom = useLoader(STLLoader, url);
   return (
@@ -144,9 +141,6 @@ const BRAILLE_MAP = {
   chargeIndicator: [5], numberSign: [3, 4, 5, 6], plus: [2, 3, 5], minus: [3, 6]
 };
 
-// =========================================================
-// TRADUTOR REVERSO
-// =========================================================
 const getU = (dots) => {
   let code = 10240; 
   if (dots) {
@@ -182,8 +176,8 @@ const Dot = ({ active }) => (
 
 const BrailleCell = ({ dots, label, description }) => {
   return (
-    <div className="flex flex-col items-center sm:mx-1 sm:mb-4">
-      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-white rounded-md border border-slate-300 shadow-sm">
+    <div className="flex flex-col items-center sm:mx-1 sm:mb-4" role="group" aria-label={`Cela Braille: ${description}`}>
+      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-white rounded-md border border-slate-300 shadow-sm" aria-hidden="true">
         <Dot active={dots.includes(1)} /> <Dot active={dots.includes(4)} />
         <Dot active={dots.includes(2)} /> <Dot active={dots.includes(5)} />
         <Dot active={dots.includes(3)} /> <Dot active={dots.includes(6)} />
@@ -196,7 +190,6 @@ const BrailleCell = ({ dots, label, description }) => {
   );
 };
 
-// Componente Slider Limpo para o Painel Avançado
 const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-1">
@@ -206,6 +199,7 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
     <input 
       type="range" min={min} max={max} step={step} 
       value={value} onChange={onChange} 
+      aria-label={`${label} em ${unit}`}
       className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
     />
   </div>
@@ -226,7 +220,6 @@ export default function App() {
 
   const [isListening, setIsListening] = useState(false);
 
-  // ESTADO DAS CONFIGURAÇÕES AVANÇADAS DO 3D
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config3D, setConfig3D] = useState({
     alturaPonto: 0.75,
@@ -317,27 +310,28 @@ export default function App() {
 
   useEffect(() => { parseBraille(input); }, []);
 
+  // FUNÇÃO ATUALIZADA COM PAUSA ASSÍNCRONA PARA ANIMAÇÃO NO CELULAR
   const handleGenerate = async (e) => {
     e.preventDefault();
     const blocosGerados = parseBraille(input);
     if (!blocosGerados || blocosGerados.length === 0) return;
+    
     setIsGenerating(true);
     setStlUrl(null); 
 
-    await new Promise(resolve => setTimeout(resolve, 25));     // Dá um respiro de 25 miliseg para o navegador móvel iniciar a animação visual da engrenagem
+    // Pausa de 50ms para permitir o início do giro da engrenagem no celular
+    await new Promise(resolve => setTimeout(resolve, 50));
 
-        try {
-          const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
-          const url = gerarUrlSTL(modelo3D);
-          setStlUrl(url); 
-        } catch (error) {
-          console.error("Erro ao gerar modelo:", error);
-          alert("Ocorreu um erro ao gerar a malha 3D!");
-        } finally {
-          setIsGenerating(false);
-        }
-      });
-    });
+    try {
+      const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
+      const url = gerarUrlSTL(modelo3D);
+      setStlUrl(url); 
+    } catch (error) {
+      console.error("Erro ao gerar modelo:", error);
+      alert("Ocorreu um erro ao gerar a malha 3D.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleDownload = () => {
@@ -537,8 +531,8 @@ export default function App() {
         </div>
       </header>
 
-      <nav className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
-        <div className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
+      <nav aria-label="Navegação Principal do Projeto" className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
+        <div role="tablist" className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
             { id: 'gerador', label: 'Gerador Braille' },
             { id: 'sobre', label: 'Sobre o Projeto' },
@@ -550,6 +544,9 @@ export default function App() {
           ].map((tab) => (
             <button
               key={tab.id}
+              role="tab"
+              aria-selected={activeTab === tab.id}
+              aria-controls={`painel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
               className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-colors duration-200 ${
                 activeTab === tab.id 
@@ -569,7 +566,7 @@ export default function App() {
         {/* ABA: GERADOR BRAILLE */}
         {/* ======================================================== */}
         {activeTab === 'gerador' && (
-          <div className="space-y-6 fade-in">
+          <div id="painel-gerador" role="tabpanel" aria-label="Gerador Braille" className="space-y-6 fade-in">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
                 <p>
@@ -619,6 +616,7 @@ export default function App() {
                     <button
                       type="button"
                       onClick={handleDictation}
+                      aria-label={isListening ? "Parar digitação por voz" : "Iniciar digitação por voz via microfone"}
                       title="Ditar por voz (Microfone)"
                       className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
                         isListening 
@@ -648,6 +646,8 @@ export default function App() {
                   <button 
                     type="button" 
                     onClick={() => setShowAdvanced(!showAdvanced)} 
+                    aria-expanded={showAdvanced}
+                    aria-controls="painel-avancado"
                     className="flex items-center text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
                   >
                     <Sliders className="w-4 h-4 mr-2" />
@@ -656,7 +656,7 @@ export default function App() {
                   </button>
                   
                   {showAdvanced && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
+                    <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
                       <ConfigSlider 
                         label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" 
                         onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} 
@@ -696,9 +696,13 @@ export default function App() {
               </form>
             </div>
 
-            {/* VISUALIZADOR 3D CORRIGIDO: BOUNDS E CENTER BOTTOM */}
+            {/* VISUALIZADOR 3D COM ACESSIBILIDADE INTEGRADA */}
             {stlUrl && (
-              <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+              <div 
+                role="region" 
+                aria-label="Área de pré-visualização do modelo 3D em formato STL"
+                className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"
+              >
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold text-slate-800 flex items-center">
                     <Box className="w-5 h-5 mr-2 text-slate-500" />
@@ -706,25 +710,32 @@ export default function App() {
                   </h2>
                   <button
                     onClick={handleDownload}
+                    aria-label="Baixar arquivo 3D formato STL pronto para impressão"
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Baixar STL</span>
+                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
                     <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
                 
-                <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
+                {/* Texto oculto para leitores de tela compreenderem o que é a malha 3D */}
+                <p className="sr-only">
+                  Modelo 3D gerado com sucesso para a fórmula {input}. O arquivo possui aproximadamente {celasFisicas.length} celas braille. Utilize o botão de download acima para baixar o arquivo pronto para impressão.
+                </p>
+
+                <div aria-hidden="true" className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
                   <button
                     onClick={() => setAutoRotate(!autoRotate)}
+                    aria-label={autoRotate ? "Desligar rotação automática do modelo 3D" : "Ligar rotação automática do modelo 3D"}
+                    title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
                     className={`absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all ${
                       autoRotate ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-700/80 hover:bg-slate-600'
                     }`}
-                    title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
                   >
                     <img 
                       src={iconeRotacao}
-                      alt="Rotacionar" 
+                      alt="" 
                       className="w-12 h-12 rounded-full object-cover"
                     />
                   </button>
@@ -735,7 +746,6 @@ export default function App() {
                       <ambientLight intensity={0.5} />
                       <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
                       
-                      {/* O componente Bounds foca e dá zoom exato no modelo, o Center encosta a base do modelo no chão (Eixo Y=0) */}
                       <Bounds fit clip observe margin={1.2}>
                         <Center bottom position={[0, 0, 0]}>
                           <StlModel url={stlUrl} />
@@ -784,13 +794,14 @@ export default function App() {
                       </div>
                       <button
                         onClick={handleCopy}
+                        aria-label="Copiar texto em formato Unicode Braille para a área de transferência"
                         className="w-full py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-md flex items-center justify-center space-x-2 transition-colors"
                       >
                         {copiado ? (
-                          <>
-                            <Check className="w-4 h-4 text-green-600" />
-                            <span className="text-green-700">Copiado!</span>
-                          </>
+                          <span aria-live="assertive" className="flex items-center text-green-700 font-semibold">
+                            <Check className="w-4 h-4 text-green-600 mr-1.5" />
+                            <span>Copiado!</span>
+                          </span>
                         ) : (
                           <>
                             <Copy className="w-4 h-4" />
@@ -808,8 +819,9 @@ export default function App() {
                         </span>
                         <button 
                           onClick={handleClearTranslator}
-                          className="px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
+                          aria-label="Limpar texto Braille digitado"
                           title="Apagar todo o texto inserido"
+                          className="px-2 py-1 bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
                         >
                           <Trash2 className="w-3 h-3 mr-1" />
                           Limpar
@@ -818,6 +830,7 @@ export default function App() {
                       <textarea
                         value={brailleInput}
                         onChange={(e) => handleBrailleTranslate(e.target.value)}
+                        aria-label="Área de digitação ou colagem de caracteres Braille"
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
                         placeholder="Cole caracteres Braille aqui..."
                       />
@@ -830,15 +843,21 @@ export default function App() {
                         <button
                           onClick={handleSpeak}
                           disabled={!translatedText}
-                          className="px-2 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          aria-label="Ouvir tradução em voz alta em português"
                           title="Ouvir tradução em voz alta"
+                          className="px-2 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <Volume2 className="w-3 h-3 mr-1" />
                           Ouvir
                         </button>
                       </div>
 
-                      <div className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1">
+                      {/* ARIA-LIVE: Fala a tradução automaticamente para o cego */}
+                      <div 
+                        aria-live="polite" 
+                        aria-atomic="true"
+                        className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1"
+                      >
                         {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
                       </div>
                     </div>
@@ -855,7 +874,7 @@ export default function App() {
         {/* ABA: SOBRE O PROJETO */}
         {/* ======================================================== */}
         {activeTab === 'sobre' && (
-          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
+          <div id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
             <div className="border-b border-slate-100 pb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
               <p className="text-lg text-blue-600 font-medium mt-2">Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
@@ -885,9 +904,9 @@ export default function App() {
         {/* ABA: PARCERIAS */}
         {/* ======================================================== */}
         {activeTab === 'parcerias' && (
-          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
+          <div id="painel-parcerias" role="tabpanel" aria-label="Parcerias" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
             <div className="flex justify-center mb-6">
-              <div className="p-5 bg-blue-50 rounded-full text-blue-600 shadow-inner">
+              <div className="p-5 bg-blue-50 rounded-full text-blue-600 shadow-inner" aria-hidden="true">
                 <Handshake className="w-14 h-14" />
               </div>
             </div>
@@ -922,7 +941,7 @@ export default function App() {
         {/* ABA: EQUIPE */}
         {/* ======================================================== */}
         {activeTab === 'equipe' && (
-          <div className="space-y-6 fade-in">
+          <div id="painel-equipe" role="tabpanel" aria-label="Nossa Equipe" className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
               <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
@@ -935,7 +954,7 @@ export default function App() {
                     {membro.foto ? (
                       <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
                     ) : (
-                      <User className="w-12 h-12 text-slate-400" />
+                      <User className="w-12 h-12 text-slate-400" aria-hidden="true" />
                     )}
                   </div>
                   <div className="flex-1 space-y-2">
@@ -948,13 +967,13 @@ export default function App() {
                     </p>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
                       {membro.email && (
-                        <a href={`mailto:${membro.email}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                        <a href={`mailto:${membro.email}`} aria-label={`E-mail de ${membro.nome}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
                           <Mail className="w-3.5 h-3.5 mr-1" />
                           E-mail
                         </a>
                       )}
                       {membro.lattes && (
-                        <a href={membro.lattes} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                        <a href={membro.lattes} aria-label={`Currículo Lattes de ${membro.nome}`} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
                           <GraduationCap className="w-3.5 h-3.5 mr-1" />
                           Lattes
                         </a>
@@ -971,9 +990,9 @@ export default function App() {
         {/* ABA: ACHOU UM BUG? */}
         {/* ======================================================== */}
         {activeTab === 'bug' && (
-          <div className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
+          <div id="painel-bug" role="tabpanel" aria-label="Reporte de Bug" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
             <div className="flex justify-center mb-6">
-              <div className="p-4 bg-red-100 rounded-full text-red-600">
+              <div className="p-4 bg-red-100 rounded-full text-red-600" aria-hidden="true">
                 <Bug className="w-12 h-12" />
               </div>
             </div>
@@ -1001,7 +1020,7 @@ export default function App() {
         {/* ABA: INSTRUÇÕES (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
-          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+          <div id="painel-instrucoes" role="tabpanel" aria-label="Instruções" className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
             <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
           </div>
@@ -1011,7 +1030,7 @@ export default function App() {
         {/* ABA: SAIBA MAIS (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
-          <div className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+          <div id="painel-saiba-mais" role="tabpanel" aria-label="Saiba Mais" className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
             <p>Área reservada para documentações futuras.</p>
           </div>
@@ -1038,19 +1057,19 @@ export default function App() {
           </div>
 
           <div className="flex items-center space-x-5">
-            <a href="mailto:andrevinniciosgaito@gmail.com" className="text-slate-400 hover:text-white transition-colors" title="Enviar E-mail">
+            <a href="mailto:andrevinniciosgaito@gmail.com" aria-label="Enviar E-mail para André Gaito" className="text-slate-400 hover:text-white transition-colors" title="Enviar E-mail">
               <Mail className="w-6 h-6" />
             </a>
-            <a href="http://lattes.cnpq.br/9008126975057063" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="Currículo Lattes">
+            <a href="http://lattes.cnpq.br/9008126975057063" target="_blank" rel="noopener noreferrer" aria-label="Acessar Currículo Lattes de André Gaito" className="text-slate-400 hover:text-white transition-colors" title="Currículo Lattes">
               <GraduationCap className="w-6 h-6" />
             </a>
-            <a href="https://www.instagram.com/andre_gaito/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="Instagram">
+            <a href="https://www.instagram.com/andre_gaito/" target="_blank" rel="noopener noreferrer" aria-label="Acessar perfil do Instagram de André Gaito" className="text-slate-400 hover:text-white transition-colors" title="Instagram">
               <InstagramIcon className="w-6 h-6" />
             </a>
-            <a href="https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="GitHub">
+            <a href="https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0" target="_blank" rel="noopener noreferrer" aria-label="Acessar repositório do projeto no GitHub" className="text-slate-400 hover:text-white transition-colors" title="GitHub">
               <GithubIcon className="w-6 h-6" />
             </a>
-            <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-white transition-colors" title="LinkedIn">
+            <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" aria-label="Acessar perfil do LinkedIn de André Gaito" className="text-slate-400 hover:text-white transition-colors" title="LinkedIn">
               <LinkedinIcon className="w-6 h-6" />
             </a>
           </div>
