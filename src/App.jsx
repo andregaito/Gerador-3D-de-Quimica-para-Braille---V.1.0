@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake } from 'lucide-react';
+// ADICIONAMOS A IMPORTAÇÃO DO ÍCONE 'Palette' DA LUCIDE-REACT:
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
@@ -190,23 +191,96 @@ const BrailleCell = ({ dots, label, description }) => {
   );
 };
 
-const ConfigSlider = ({ label, value, min, max, step, unit, onChange }) => (
+// COMPONENTE ATUALIZADO: Recebe a cor dinâmica para atualizar os badges e o slider
+const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => (
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-1">
       <label className="text-[11px] sm:text-xs font-bold text-slate-600 uppercase">{label}</label>
-      <span className="text-xs font-mono text-blue-600 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded">{value} {unit}</span>
+      <span 
+        className="text-xs font-mono px-2 py-0.5 rounded transition-colors"
+        style={{ color: cor, backgroundColor: `${cor}1A`, border: `1px solid ${cor}33` }}
+      >
+        {value} {unit}
+      </span>
     </div>
     <input 
       type="range" min={min} max={max} step={step} 
       value={value} onChange={onChange} 
       aria-label={`${label} em ${unit}`}
-      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600" 
+      className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
+      style={{ accentColor: cor }}
     />
   </div>
 );
 
+// =========================================================
+// NOVO COMPONENTE: TESTADOR DE PALETA DE CORES EM TEMPO REAL
+// =========================================================
+const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) => {
+  const handleSwitch = () => {
+    if (!modoRoxo) {
+      setModoRoxo(true);
+      setCorPrincipal('#7e22ce'); // Roxo
+    } else {
+      setModoRoxo(false);
+      setCorPrincipal('#0e52c2'); // Azul Default
+    }
+  };
+
+  const handleColorPicker = (e) => {
+    setModoRoxo(false); // Desativa o switch se o usuário escolher outra cor personalizada
+    setCorPrincipal(e.target.value);
+  };
+
+  return (
+    <div 
+      className="flex items-center space-x-3 bg-slate-100/90 px-3 py-1.5 rounded-full border border-slate-200 shadow-sm flex-shrink-0" 
+      role="region" 
+      aria-label="Testador rápido de paleta de cores"
+    >
+      {/* Switch Azul / Roxo */}
+      <button
+        type="button"
+        onClick={handleSwitch}
+        role="switch"
+        aria-checked={modoRoxo}
+        aria-label="Alternar tema entre Azul Padrão e Roxo"
+        title="Alternar entre Azul Padrão e Roxo"
+        className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-400 cursor-pointer"
+        style={{ backgroundColor: modoRoxo ? '#7e22ce' : '#0e52c2' }}
+      >
+        <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${modoRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
+      </button>
+
+      {/* Seletor de Cor Personalizada (Color Picker HEX via ícone) */}
+      <label 
+        className="cursor-pointer text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center relative"
+        title="Escolher qualquer cor HEX personalizada"
+        aria-label="Seletor de cor personalizada"
+      >
+        <Palette 
+          className="w-5 h-5 transition-colors" 
+          style={{ color: !modoRoxo && corPrincipal !== '#0e52c2' ? corPrincipal : undefined }} 
+        />
+        <input 
+          type="color" 
+          value={corPrincipal} 
+          onChange={handleColorPicker} 
+          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+        />
+      </label>
+    </div>
+  );
+};
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
+
+  // =========================================================
+  // NOVOS ESTADOS PARA O CONTROLE DE CORES DINÂMICAS
+  // =========================================================
+  const [corPrincipal, setCorPrincipal] = useState('#0e52c2'); // Cor original padrão (Azul)
+  const [modoRoxo, setModoRoxo] = useState(false);
 
   const [input, setInput] = useState('Fe(OH)2');
   const [cells, setCells] = useState([]);
@@ -310,7 +384,6 @@ export default function App() {
 
   useEffect(() => { parseBraille(input); }, []);
 
-  // FUNÇÃO ATUALIZADA COM PAUSA ASSÍNCRONA PARA ANIMAÇÃO NO CELULAR
   const handleGenerate = async (e) => {
     e.preventDefault();
     const blocosGerados = parseBraille(input);
@@ -319,7 +392,6 @@ export default function App() {
     setIsGenerating(true);
     setStlUrl(null); 
 
-    // Pausa de 50ms para permitir o início do giro da engrenagem no celular
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
@@ -531,7 +603,12 @@ export default function App() {
         </div>
       </header>
 
-      <nav aria-label="Navegação Principal do Projeto" className="bg-[#0e52c2] shadow-md sticky top-0 z-20">
+      {/* BARRA DE NAVEGAÇÃO COM COR DINÂMICA VIA INLINE STYLE */}
+      <nav 
+        aria-label="Navegação Principal do Projeto" 
+        className="shadow-md sticky top-0 z-20 transition-colors duration-300"
+        style={{ backgroundColor: corPrincipal }}
+      >
         <div role="tablist" className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
             { id: 'gerador', label: 'Gerador Braille' },
@@ -548,11 +625,12 @@ export default function App() {
               aria-selected={activeTab === tab.id}
               aria-controls={`painel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-colors duration-200 ${
+              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-all duration-200 ${
                 activeTab === tab.id 
-                  ? 'bg-blue-900 text-white border-b-4 border-white' 
-                  : 'text-blue-100 hover:bg-blue-800 hover:text-white border-b-4 border-transparent'
+                  ? 'text-white border-b-4 border-white' 
+                  : 'text-white/80 hover:bg-black/10 hover:text-white border-b-4 border-transparent'
               }`}
+              style={{ backgroundColor: activeTab === tab.id ? 'rgba(0, 0, 0, 0.25)' : 'transparent' }}
             >
               {tab.label}
             </button>
@@ -569,18 +647,35 @@ export default function App() {
           <div id="painel-gerador" role="tabpanel" aria-label="Gerador Braille" className="space-y-6 fade-in">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
-                <p>
-                  Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
-                  <a 
-                    href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="text-blue-600 font-semibold hover:text-blue-800 hover:underline transition-colors"
-                  >
-                    Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
-                  </a>.
-                </p>
-                <div className="border-l-4 border-blue-500 pl-3 bg-slate-50 py-2 pr-3 rounded-r text-sm">
+                
+                {/* TOPO DA CAIXA COM TEXTO DE UM LADO E O TESTADOR DE PALETA DO OUTRO */}
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                  <p className="flex-1 leading-relaxed">
+                    Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
+                    <a 
+                      href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="font-semibold hover:underline transition-colors"
+                      style={{ color: corPrincipal }}
+                    >
+                      Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
+                    </a>.
+                  </p>
+
+                  {/* WIDGET POSICIONADO EXATAMENTE NO CANTO SUPERIOR DIREITO */}
+                  <ColorTester 
+                    corPrincipal={corPrincipal} 
+                    setCorPrincipal={setCorPrincipal} 
+                    modoRoxo={modoRoxo} 
+                    setModoRoxo={setModoRoxo} 
+                  />
+                </div>
+
+                <div 
+                  className="border-l-4 pl-3 bg-slate-50 py-2 pr-3 rounded-r text-sm transition-colors"
+                  style={{ borderColor: corPrincipal }}
+                >
                   <p>
                     Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
                     <a 
@@ -609,7 +704,7 @@ export default function App() {
                       id="ionInput" 
                       value={input}
                       onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
                       rows={2}
                       placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
                     />
@@ -621,7 +716,7 @@ export default function App() {
                       className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
                         isListening 
                           ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400' 
-                          : 'bg-slate-200 text-slate-600 hover:bg-blue-100 hover:text-blue-600'
+                          : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       }`}
                     >
                       {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -631,9 +726,10 @@ export default function App() {
                   <div className="flex items-end">
                     <button
                       type="submit" disabled={isGenerating}
-                      className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-colors flex items-center justify-center space-x-2 h-[52px] ${
-                        isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
+                      className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2 h-[52px] ${
+                        isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'hover:opacity-90'
                       }`}
+                      style={{ backgroundColor: isGenerating ? undefined : corPrincipal }}
                     >
                       <Settings className={`w-5 h-5 inline-block ${isGenerating ? 'animate-spin' : ''}`} />
                       <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
@@ -648,7 +744,8 @@ export default function App() {
                     onClick={() => setShowAdvanced(!showAdvanced)} 
                     aria-expanded={showAdvanced}
                     aria-controls="painel-avancado"
-                    className="flex items-center text-sm font-semibold text-slate-600 hover:text-blue-600 transition-colors"
+                    className="flex items-center text-sm font-semibold text-slate-600 hover:opacity-80 transition-opacity"
+                    style={{ color: showAdvanced ? corPrincipal : undefined }}
                   >
                     <Sliders className="w-4 h-4 mr-2" />
                     Opções Avançadas de Impressão 3D
@@ -659,35 +756,35 @@ export default function App() {
                     <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
                       <ConfigSlider 
                         label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={corPrincipal}
                       />
                       <ConfigSlider 
                         label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} 
+                        onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={corPrincipal}
                       />
                     </div>
                   )}
@@ -696,7 +793,7 @@ export default function App() {
               </form>
             </div>
 
-            {/* VISUALIZADOR 3D COM ACESSIBILIDADE INTEGRADA */}
+            {/* VISUALIZADOR 3D COM ACESSIBILIDADE E CORES DINÂMICAS */}
             {stlUrl && (
               <div 
                 role="region" 
@@ -719,7 +816,6 @@ export default function App() {
                   </button>
                 </div>
                 
-                {/* Texto oculto para leitores de tela compreenderem o que é a malha 3D */}
                 <p className="sr-only">
                   Modelo 3D gerado com sucesso para a fórmula {input}. O arquivo possui aproximadamente {celasFisicas.length} celas braille. Utilize o botão de download acima para baixar o arquivo pronto para impressão.
                 </p>
@@ -729,9 +825,8 @@ export default function App() {
                     onClick={() => setAutoRotate(!autoRotate)}
                     aria-label={autoRotate ? "Desligar rotação automática do modelo 3D" : "Ligar rotação automática do modelo 3D"}
                     title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
-                    className={`absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all ${
-                      autoRotate ? 'bg-blue-600 ring-2 ring-blue-400' : 'bg-slate-700/80 hover:bg-slate-600'
-                    }`}
+                    className="absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all"
+                    style={autoRotate ? { backgroundColor: corPrincipal, ring: `2px solid ${corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}
                   >
                     <img 
                       src={iconeRotacao}
@@ -831,13 +926,13 @@ export default function App() {
                         value={brailleInput}
                         onChange={(e) => handleBrailleTranslate(e.target.value)}
                         aria-label="Área de digitação ou colagem de caracteres Braille"
-                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-blue-500 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
+                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
                         placeholder="Cole caracteres Braille aqui..."
                       />
                       
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-                          <Languages className="w-4 h-4 mr-1.5 text-blue-500" />
+                          <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: corPrincipal }} />
                           Tradução em Português
                         </span>
                         <button
@@ -845,14 +940,14 @@ export default function App() {
                           disabled={!translatedText}
                           aria-label="Ouvir tradução em voz alta em português"
                           title="Ouvir tradução em voz alta"
-                          className="px-2 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 hover:text-blue-700 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: `${corPrincipal}20`, color: corPrincipal }}
                         >
                           <Volume2 className="w-3 h-3 mr-1" />
                           Ouvir
                         </button>
                       </div>
 
-                      {/* ARIA-LIVE: Fala a tradução automaticamente para o cego */}
                       <div 
                         aria-live="polite" 
                         aria-atomic="true"
@@ -877,7 +972,7 @@ export default function App() {
           <div id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
             <div className="border-b border-slate-100 pb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
-              <p className="text-lg text-blue-600 font-medium mt-2">Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
+              <p className="text-lg font-medium mt-2 transition-colors" style={{ color: corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
@@ -906,7 +1001,11 @@ export default function App() {
         {activeTab === 'parcerias' && (
           <div id="painel-parcerias" role="tabpanel" aria-label="Parcerias" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
             <div className="flex justify-center mb-6">
-              <div className="p-5 bg-blue-50 rounded-full text-blue-600 shadow-inner" aria-hidden="true">
+              <div 
+                className="p-5 rounded-full shadow-inner transition-colors" 
+                aria-hidden="true"
+                style={{ backgroundColor: `${corPrincipal}1A`, color: corPrincipal }}
+              >
                 <Handshake className="w-14 h-14" />
               </div>
             </div>
@@ -919,7 +1018,10 @@ export default function App() {
               <p>
                 Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
               </p>
-              <p className="font-medium text-slate-700 bg-slate-50 p-4 border-l-4 border-blue-500 rounded-r-lg shadow-sm">
+              <p 
+                className="font-medium text-slate-700 bg-slate-50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors"
+                style={{ borderColor: corPrincipal }}
+              >
                 Qualquer escola, instituição ou entidade educacional que tenha interesse em aplicar os nossos materiais pedagógicos, testar o gerador ou firmar algum tipo de colaboração e parceria conosco é mais que bem-vinda!
               </p>
             </div>
@@ -927,7 +1029,8 @@ export default function App() {
             <div className="mt-10">
               <a 
                 href="mailto:andrevinniciosgaito@gmail.com?subject=Interesse%20em%20Parceria%20-%20Química%20ao%20Alcance%20das%20Mãos" 
-                className="inline-flex items-center px-8 py-4 bg-[#0e52c2] hover:bg-blue-800 text-white text-lg font-bold rounded-lg shadow-md transition-all transform hover:-translate-y-1"
+                className="inline-flex items-center px-8 py-4 text-white text-lg font-bold rounded-lg shadow-md transition-all transform hover:-translate-y-1 hover:opacity-90"
+                style={{ backgroundColor: corPrincipal }}
               >
                 <Mail className="w-6 h-6 mr-3" />
                 Entre em Contato Conosco
@@ -960,20 +1063,20 @@ export default function App() {
                   <div className="flex-1 space-y-2">
                     <div>
                       <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
-                      <p className="text-sm font-semibold text-blue-600">{membro.titulo}</p>
+                      <p className="text-sm font-semibold transition-colors" style={{ color: corPrincipal }}>{membro.titulo}</p>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed">
                       {membro.descricao}
                     </p>
                     <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
                       {membro.email && (
-                        <a href={`mailto:${membro.email}`} aria-label={`E-mail de ${membro.nome}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                        <a href={`mailto:${membro.email}`} aria-label={`E-mail de ${membro.nome}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">
                           <Mail className="w-3.5 h-3.5 mr-1" />
                           E-mail
                         </a>
                       )}
                       {membro.lattes && (
-                        <a href={membro.lattes} aria-label={`Currículo Lattes de ${membro.nome}`} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                        <a href={membro.lattes} aria-label={`Currículo Lattes de ${membro.nome}`} target="_blank" rel="noopener noreferrer" className="flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">
                           <GraduationCap className="w-3.5 h-3.5 mr-1" />
                           Lattes
                         </a>
@@ -1005,7 +1108,8 @@ export default function App() {
             </p>
             <a 
               href="mailto:andrevinniciosgaito@gmail.com?subject=Reporte%20de%20Bug%20/%20Sugestão%20-%20Gerador%20Braille" 
-              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-sm transition-colors"
+              className="inline-flex items-center px-6 py-3 text-white font-bold rounded-lg shadow-sm transition-all hover:opacity-90"
+              style={{ backgroundColor: corPrincipal }}
             >
               <Mail className="w-5 h-5 mr-2" />
               Reportar para a Equipe
@@ -1051,7 +1155,7 @@ export default function App() {
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
-                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 hover:underline transition-colors">André Vinnicios S. Gaito</a>
+                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors" style={{ color: corPrincipal }}>André Vinnicios S. Gaito</a>
               </p>
             </div>
           </div>
