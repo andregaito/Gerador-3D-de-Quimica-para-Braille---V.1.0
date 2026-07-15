@@ -6,7 +6,7 @@ import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
-
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 // Importações de Imagens Principais
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
@@ -268,6 +268,121 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
   );
 };
 
+
+// =========================================================
+// MOTOR INTELIGENTE DE VALIDAÇÃO E SUGESTÃO QUÍMICA (NOX / VALÊNCIA)
+// =========================================================
+const checarSugestaoQuimica = (texto) => {
+  const limpo = texto.trim();
+  if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null; // Ignora textos longos ou frases
+
+  // 1. Dicionário de NOX Fixos e Frequentes (Íons simples)
+  const noxFixos = {
+    'Na': ['Na+'], 'K': ['K+'], 'Li': ['Li+'], 'Ag': ['Ag+'],
+    'Ca': ['Ca2+'], 'Mg': ['Mg2+'], 'Ba': ['Ba2+'], 'Zn': ['Zn2+'],
+    'Al': ['Al3+'],
+    'F': ['F-'], 'Cl': ['Cl-'], 'Br': ['Br-'], 'I': ['I-'],
+    'O': ['O2-'], 'S': ['S2-']
+  };
+
+  // 2. Dicionário de Substâncias Clássicas e seus erros comuns
+  const compostosClassicos = {
+    'Fe(OH)': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)1': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)4': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)5': ['Fe(OH)2', 'Fe(OH)3'],
+    'Cu(OH)': ['CuOH', 'Cu(OH)2'], 'Cu(OH)3': ['CuOH', 'Cu(OH)2'],
+    'Al(OH)': ['Al(OH)3'], 'Al(OH)2': ['Al(OH)3'],
+    'Ca(OH)': ['Ca(OH)2'], 'Mg(OH)': ['Mg(OH)2'], 'Zn(OH)': ['Zn(OH)2'],
+    'NaOH2': ['NaOH'], 'KOH2': ['KOH'],
+    'HSO4': ['H2SO4'], 'H3SO4': ['H2SO4'], 'HSO3': ['H2SO3'],
+    'HCO3': ['H2CO3'], 'HNO': ['HNO2', 'HNO3'],
+    'H2O22': ['H2O2', 'H2O']
+  };
+
+  // Verificação direta no dicionário de compostos clássicos
+  for (let errado in compostosClassicos) {
+    if (limpo.toUpperCase() === errado.toUpperCase()) {
+      return {
+        mensagem: `O Ferro (Fe) ou o radical apresenta valência clássica diferente para essa combinação.`,
+        sugestoes: compostosClassicos[errado]
+      };
+    }
+  }
+
+  // Verificação de NOX fixo para átomos isolados com carga
+  const matchIon = limpo.match(/^([A-Z][a-z]?)([0-9]*)([+-])([0-9]*)$/);
+  if (matchIon) {
+    const [, elemento, numAntes, sinal, numDepois] = matchIon;
+    const numeroCarga = numAntes || numDepois || '1';
+    
+    // Regra 1: Inversão ou digitação desnecessária do número 1 (ex: Na+1, Na1+, Cl-1)
+    if (numeroCarga === '1') {
+      const formCorreta = `${elemento}${sinal}`;
+      if (limpo !== formCorreta && noxFixos[elemento] && noxFixos[elemento].includes(formCorreta)) {
+        return {
+          mensagem: `Na grafia química padrão, o número 1 na carga unitária é omitido.`,
+          sugestoes: [formCorreta]
+        };
+      }
+    }
+
+    // Regra 2: Carga errada para átomo de NOX fixo (ex: Na+2, Ca+3, Al+)
+    if (noxFixos[elemento]) {
+      const corretaLista = noxFixos[elemento];
+      if (!corretaLista.some(c => c === limpo || c === `${elemento}${numeroCarga}${sinal}`)) {
+        return {
+          mensagem: `O elemento ${elemento} possui NOX/Valência fixa e não costuma formar o íon digitado.`,
+          sugestoes: corretaLista
+        };
+      }
+    }
+
+    // Regra 3: Inversão de grafia (ex: Fe+2 ao invés de Fe2+)
+    if (numDepois && !numAntes) {
+      return {
+        mensagem: `A convenção da IUPAC recomenda colocar o número antes do sinal na carga do íon.`,
+        sugestoes: [`${elemento}${numDepois}${sinal}`]
+      };
+    }
+  }
+
+  return null;
+};
+
+// COMPONENTE VISUAL: CAIXA DE ALERTA AMARELA
+const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
+  if (!sugestaoDados) return null;
+
+  return (
+    <div 
+      role="alert" 
+      aria-live="polite"
+      className="mt-3 bg-amber-50/90 border-l-4 border-amber-500 p-3 rounded-r-lg shadow-sm flex items-start space-x-3 text-left transition-all animate-fadeIn"
+    >
+      <div className="p-1 bg-amber-500/10 rounded-full text-amber-600 flex-shrink-0 mt-0.5">
+        <Info className="w-5 h-5" />
+      </div>
+      <div className="flex-1 text-xs sm:text-sm text-amber-900 leading-relaxed">
+        <span className="font-semibold block text-amber-950 mb-0.5">Sugestão de Estequiometria / IUPAC:</span>
+        {sugestaoDados.mensagem}
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="text-amber-800 font-medium">Talvez você quisesse dizer:</span>
+          {sugestaoDados.sugestoes.map((sug, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => aoAplicarSugestao(sug)}
+              title={`Clique para corrigir automaticamente para ${sug}`}
+              className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 font-mono font-bold rounded border border-amber-300 shadow-2xs transition-colors cursor-pointer underline decoration-amber-500/50"
+            >
+              {sug}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
@@ -285,6 +400,14 @@ export default function App() {
   const [translatedText, setTranslatedText] = useState('');
 
   const [isListening, setIsListening] = useState(false);
+  
+  // CALCULA A SUGESTÃO EM TEMPO REAL
+  const sugestaoQuimica = checarSugestaoQuimica(input);
+  // FUNÇÃO QUE CORRIGE AUTOMATICAMENTE AO CLICAR NA SUGESTÃO
+  const handleAplicarSugestao = (novaFormula) => {
+    setInput(novaFormula);
+    parseBraille(novaFormula);
+  };
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [config3D, setConfig3D] = useState({
