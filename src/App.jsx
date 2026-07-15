@@ -1,5 +1,4 @@
 import React, { useState, useEffect, Suspense } from 'react';
-// ADICIONAMOS A IMPORTAÇÃO DO ÍCONE 'Palette' DA LUCIDE-REACT:
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
@@ -11,6 +10,7 @@ import { useLoader } from '@react-three/fiber';
 // Importações de Imagens Principais
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
+import logoRoxo from './assets/Quimica ao Alcanse das maos logo transparente ROXO.png'; // NOVA LOGO ROXA IMPORTADA
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
@@ -36,7 +36,7 @@ const EQUIPE = [
     foto: fotoAndreGaito
   },
   {
-    nome: "Prof. Dr. Ricardo Cunha Michel",
+    nome: "Ricardo Cunha Michel",
     titulo: "Professor Doutor em Química",
     descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
     email: "michel@iq.ufrj.br",
@@ -44,8 +44,8 @@ const EQUIPE = [
     foto: fotoRicardoMichel
   },
   {
-    nome: "Dra. Fernanda Das Neves Costa",
-    titulo: "Pesquisadora e Coordenadora",
+    nome: "Fernanda Das Neves Costa",
+    titulo: "Prof. Dra. em Química",
     descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
     email: "FNCosta@IPPN.UFRJ.br",
     lattes: "http://lattes.cnpq.br/4349970710727785",
@@ -69,7 +69,7 @@ const EQUIPE = [
   },
   {
     nome: "Pedro Xavier",
-    titulo: "Membro do Projeto",
+    titulo: "Mestrando em Química",
     descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.",
     email: "pedrofariax@ima.ufrj.br",
     lattes: "http://lattes.cnpq.br/3367215215251168",
@@ -191,7 +191,6 @@ const BrailleCell = ({ dots, label, description }) => {
   );
 };
 
-// COMPONENTE ATUALIZADO: Recebe a cor dinâmica para atualizar os badges e o slider
 const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => (
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-1">
@@ -213,9 +212,7 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
   </div>
 );
 
-// =========================================================
-// NOVO COMPONENTE: TESTADOR DE PALETA DE CORES EM TEMPO REAL
-// =========================================================
+// TESTADOR DE PALETA DE CORES
 const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) => {
   const handleSwitch = () => {
     if (!modoRoxo) {
@@ -228,7 +225,7 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
   };
 
   const handleColorPicker = (e) => {
-    setModoRoxo(false); // Desativa o switch se o usuário escolher outra cor personalizada
+    setModoRoxo(false);
     setCorPrincipal(e.target.value);
   };
 
@@ -238,7 +235,6 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
       role="region" 
       aria-label="Testador rápido de paleta de cores"
     >
-      {/* Switch Azul / Roxo */}
       <button
         type="button"
         onClick={handleSwitch}
@@ -252,7 +248,6 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
         <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${modoRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
 
-      {/* Seletor de Cor Personalizada (Color Picker HEX via ícone) */}
       <label 
         className="cursor-pointer text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center relative"
         title="Escolher qualquer cor HEX personalizada"
@@ -276,10 +271,7 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
 export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
-  // =========================================================
-  // NOVOS ESTADOS PARA O CONTROLE DE CORES DINÂMICAS
-  // =========================================================
-  const [corPrincipal, setCorPrincipal] = useState('#0e52c2'); // Cor original padrão (Azul)
+  const [corPrincipal, setCorPrincipal] = useState('#0e52c2'); 
   const [modoRoxo, setModoRoxo] = useState(false);
 
   const [input, setInput] = useState('Fe(OH)2');
@@ -587,10 +579,11 @@ export default function App() {
       
       <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 shadow-sm z-10 relative">
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
+          {/* LOGO DINÂMICA: Troca a imagem de acordo com o modoRoxo */}
           <img 
-            src={logoPrincipal} 
+            src={modoRoxo ? logoRoxo : logoPrincipal} 
             alt="Logo Química ao Alcance das Mãos" 
-            className="w-16 h-16 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain drop-shadow-sm flex-shrink-0"
+            className="w-16 h-16 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain drop-shadow-sm flex-shrink-0 transition-all duration-300"
           />
           <div className="text-left flex flex-col justify-center">
             <h1 className="text-lg sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
@@ -603,7 +596,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* BARRA DE NAVEGAÇÃO COM COR DINÂMICA VIA INLINE STYLE */}
       <nav 
         aria-label="Navegação Principal do Projeto" 
         className="shadow-md sticky top-0 z-20 transition-colors duration-300"
@@ -648,7 +640,6 @@ export default function App() {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
               <div className="text-slate-600 space-y-3">
                 
-                {/* TOPO DA CAIXA COM TEXTO DE UM LADO E O TESTADOR DE PALETA DO OUTRO */}
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <p className="flex-1 leading-relaxed">
                     Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
@@ -663,7 +654,6 @@ export default function App() {
                     </a>.
                   </p>
 
-                  {/* WIDGET POSICIONADO EXATAMENTE NO CANTO SUPERIOR DIREITO */}
                   <ColorTester 
                     corPrincipal={corPrincipal} 
                     setCorPrincipal={setCorPrincipal} 
@@ -1047,7 +1037,7 @@ export default function App() {
           <div id="painel-equipe" role="tabpanel" aria-label="Nossa Equipe" className="space-y-6 fade-in">
             <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores que tornam o projeto possível.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1115,7 +1105,7 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
+              Ou envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
