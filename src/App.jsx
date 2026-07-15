@@ -271,36 +271,94 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
 };
 
 // =========================================================
-// MOTOR INTELIGENTE DE VALIDAÇÃO E SUGESTÃO QUÍMICA (NOX / VALÊNCIA)
+// MOTOR ROBUSTO DE VALIDAÇÃO E SUGESTÃO QUÍMICA (ENSINO MÉDIO & SUPERIOR)
 // =========================================================
 const checarSugestaoQuimica = (texto) => {
   const limpo = texto.trim();
   if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null;
 
-  const noxFixos = {
-    'Na': ['Na+'], 'K': ['K+'], 'Li': ['Li+'], 'Ag': ['Ag+'],
-    'Ca': ['Ca2+'], 'Mg': ['Mg2+'], 'Ba': ['Ba2+'], 'Zn': ['Zn2+'],
-    'Al': ['Al3+'],
-    'F': ['F-'], 'Cl': ['Cl-'], 'Br': ['Br-'], 'I': ['I-'],
-    'O': ['O2-'], 'S': ['S2-']
+  // 1. Dicionário Completo de Valências e Íons da Tabela Periódica
+  const noxElementos = {
+    'H': ['H+', 'H-'],
+    'Li': ['Li+'], 'Na': ['Na+'], 'K': ['K+'], 'Rb': ['Rb+'], 'Cs': ['Cs+'],
+    'Be': ['Be2+'], 'Mg': ['Mg2+'], 'Ca': ['Ca2+'], 'Sr': ['Sr2+'], 'Ba': ['Ba2+'],
+    'Sc': ['Sc3+'],
+    'Ti': ['Ti2+', 'Ti3+', 'Ti4+'],
+    'V': ['V2+', 'V3+', 'V4+', 'V5+'],
+    'Cr': ['Cr2+', 'Cr3+', 'Cr6+'],
+    'Mn': ['Mn2+', 'Mn3+', 'Mn4+', 'Mn6+', 'Mn7+'],
+    'Fe': ['Fe2+', 'Fe3+'],
+    'Co': ['Co2+', 'Co3+'],
+    'Ni': ['Ni2+', 'Ni3+'],
+    'Cu': ['Cu+', 'Cu2+'],
+    'Zn': ['Zn2+'],
+    'Y': ['Y3+'], 'Zr': ['Zr4+'], 'Mo': ['Mo4+', 'Mo6+'], 'Pd': ['Pd2+', 'Pd4+'],
+    'Ag': ['Ag+'], 'Cd': ['Cd2+'],
+    'Pt': ['Pt2+', 'Pt4+'], 'Au': ['Au+', 'Au3+'], 'Hg': ['Hg22+', 'Hg2+'],
+    'Al': ['Al3+'], 'Ga': ['Ga3+'], 'In': ['In3+'], 'Tl': ['Tl+', 'Tl3+'],
+    'C': ['C4-', 'C2+', 'C4+'], 'Si': ['Si4-', 'Si4+'], 'Sn': ['Sn2+', 'Sn4+'], 'Pb': ['Pb2+', 'Pb4+'],
+    'N': ['N3-', 'N3+', 'N5+'], 'P': ['P3-', 'P3+', 'P5+'], 'As': ['As3-', 'As3+', 'As5+'], 'Sb': ['Sb3+', 'Sb5+'], 'Bi': ['Bi3+', 'Bi5+'],
+    'O': ['O2-', 'O22-'], 'S': ['S2-', 'S4+', 'S6+'], 'Se': ['Se2-', 'Se4+', 'Se6+'], 'Te': ['Te2-', 'Te4+', 'Te6+'],
+    'F': ['F-'], 'Cl': ['Cl-', 'Cl+', 'Cl3+', 'Cl5+', 'Cl7+'], 'Br': ['Br-', 'Br+', 'Br3+', 'Br5+', 'Br7+'], 'I': ['I-', 'I+', 'I3+', 'I5+', 'I7+']
   };
 
-  const compostosClassicos = {
-    'Fe(OH)': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)1': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)4': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)5': ['Fe(OH)2', 'Fe(OH)3'],
-    'Cu(OH)': ['CuOH', 'Cu(OH)2'], 'Cu(OH)3': ['CuOH', 'Cu(OH)2'],
-    'Al(OH)': ['Al(OH)3'], 'Al(OH)2': ['Al(OH)3'],
-    'Ca(OH)': ['Ca(OH)2'], 'Mg(OH)': ['Mg(OH)2'], 'Zn(OH)': ['Zn(OH)2'],
-    'NaOH2': ['NaOH'], 'KOH2': ['KOH'],
-    'HSO4': ['H2SO4'], 'H3SO4': ['H2SO4'], 'HSO3': ['H2SO3'],
-    'HCO3': ['H2CO3'], 'HNO': ['HNO2', 'HNO3'],
-    'H2O22': ['H2O2', 'H2O']
+  // 2. Dicionário de Óxidos Clássicos do Ensino Médio
+  const oxidosClassicos = {
+    'NaO': ['Na2O', 'Na2O2'], 'KO': ['K2O', 'K2O2'], 'LiO': ['Li2O'],
+    'CaO2': ['CaO'], 'MgO2': ['MgO'], 'BaO2': ['BaO', 'BaO2'],
+    'FeO': ['FeO', 'Fe2O3', 'Fe3O4'], 'Fe2O': ['FeO', 'Fe2O3'], 'Fe3O2': ['Fe2O3', 'Fe3O4'],
+    'CuO3': ['Cu2O', 'CuO'], 'Cu2O2': ['CuO'],
+    'ZnO2': ['ZnO'], 'AgO': ['Ag2O'], 'Ag2O2': ['Ag2O'],
+    'MnO': ['MnO', 'MnO2', 'Mn2O3', 'Mn2O7'], 'Mn2O4': ['MnO2'],
+    'CrO': ['CrO', 'Cr2O3', 'CrO3'], 'Cr2O': ['Cr2O3'],
+    'AlO': ['Al2O3'], 'Al2O': ['Al2O3'], 'AlO2': ['Al2O3'],
+    'CO3': ['CO', 'CO2'], 'C2O': ['CO', 'CO2'],
+    'SiO': ['SiO2'], 'SiO3': ['SiO2'],
+    'PbO3': ['PbO', 'PbO2', 'Pb3O4'], 'SnO3': ['SnO', 'SnO2'],
+    'NO3': ['N2O', 'NO', 'N2O3', 'NO2', 'N2O5'], 'N2O4': ['NO2', 'N2O5'],
+    'PO': ['P2O3', 'P2O5'], 'P2O': ['P2O3', 'P2O5'],
+    'SO': ['SO2', 'SO3'], 'S2O3': ['SO2', 'SO3'], 'SO4': ['SO2', 'SO3'],
+    'ClO': ['Cl2O', 'Cl2O3', 'Cl2O5', 'Cl2O7'], 'Cl2O2': ['Cl2O', 'Cl2O3']
   };
 
-  for (let errado in compostosClassicos) {
+  // 3. Dicionário de Ácidos, Bases, Sais e Compostos Orgânicos Clássicos
+  const compostosEnsinoMedio = {
+    'NaOH2': ['NaOH'], 'KOH2': ['KOH'], 'LiOH2': ['LiOH'],
+    'Ca(OH)': ['Ca(OH)2'], 'Mg(OH)': ['Mg(OH)2'], 'Ba(OH)': ['Ba(OH)2'],
+    'Al(OH)': ['Al(OH)3'], 'Al(OH)2': ['Al(OH)3'], 'Al(OH)4': ['Al(OH)3'],
+    'Fe(OH)': ['Fe(OH)2', 'Fe(OH)3'], 'Fe(OH)4': ['Fe(OH)2', 'Fe(OH)3'],
+    'Cu(OH)': ['CuOH', 'Cu(OH)2'], 'Zn(OH)': ['Zn(OH)2'],
+    'NH4OH2': ['NH4OH'], 'NH3OH': ['NH4OH'],
+    'HCl2': ['HCl'], 'H2Cl': ['HCl'], 'HF2': ['HF'], 'HBr2': ['HBr'], 'HI2': ['HI'],
+    'HSO4': ['H2SO4'], 'H3SO4': ['H2SO4'], 'HSO3': ['H2SO3'], 'H2SO5': ['H2SO4'],
+    'HNO': ['HNO2', 'HNO3'], 'H2NO3': ['HNO3'], 'HNO4': ['HNO3'],
+    'HPO4': ['H3PO4'], 'H2PO4': ['H3PO4'], 'H4PO4': ['H3PO4'], 'H3PO2': ['H3PO2', 'H3PO3', 'H3PO4'],
+    'HCO3': ['H2CO3'], 'H3CO3': ['H2CO3'],
+    'HClO': ['HClO', 'HClO2', 'HClO3', 'HClO4'], 'H2ClO4': ['HClO4'],
+    'H2S2': ['H2S'], 'HCN2': ['HCN'],
+    'NaCl2': ['NaCl'], 'Na2Cl': ['NaCl'], 'KCl2': ['KCl'],
+    'NaSO4': ['Na2SO4'], 'KSO4': ['K2SO4'], 'CaSO42': ['CaSO4'],
+    'NaCO3': ['Na2CO3'], 'NaHCO': ['NaHCO3'], 'CaCO': ['CaCO3'], 'Ca2CO3': ['CaCO3'],
+    'KMnO': ['KMnO4'], 'K2MnO42': ['KMnO4', 'K2MnO4'],
+    'KCr2O7': ['K2Cr2O7'], 'NaCr2O7': ['Na2Cr2O7'],
+    'AgNO': ['AgNO3'], 'Ag2NO3': ['AgNO3'],
+    'CuSO': ['CuSO4'], 'Cu2SO42': ['CuSO4'],
+    'FeSO42': ['FeSO4', 'Fe2(SO4)3'], 'Fe(SO4)': ['FeSO4', 'Fe2(SO4)3'],
+    'NH4Cl2': ['NH4Cl'], 'NH4NO32': ['NH4NO3'],
+    'Ca3PO4': ['Ca3(PO4)2'], 'CaPO4': ['Ca3(PO4)2'],
+    'CH3COOH2': ['CH3COOH'], 'C2H4O22': ['CH3COOH'],
+    'C6H12O62': ['C6H12O6'], 'C12H22O112': ['C12H22O11'],
+    'CH42': ['CH4'], 'C2H62': ['C2H6'], 'C2H42': ['C2H4'], 'C2H22': ['C2H2'],
+    'CH3OH2': ['CH3OH'], 'C2H5OH2': ['C2H5OH']
+  };
+
+  const dicionarioGeral = { ...oxidosClassicos, ...compostosEnsinoMedio };
+
+  for (let errado in dicionarioGeral) {
     if (limpo.toUpperCase() === errado.toUpperCase()) {
       return {
-        mensagem: `O Ferro (Fe) ou o radical apresenta valência clássica diferente para essa combinação.`,
-        sugestoes: compostosClassicos[errado]
+        mensagem: `A proporção estequiométrica ou valência mais comum para esta substância é diferente.`,
+        sugestoes: dicionarioGeral[errado]
       };
     }
   }
@@ -312,7 +370,7 @@ const checarSugestaoQuimica = (texto) => {
     
     if (numeroCarga === '1') {
       const formCorreta = `${elemento}${sinal}`;
-      if (limpo !== formCorreta && noxFixos[elemento] && noxFixos[elemento].includes(formCorreta)) {
+      if (limpo !== formCorreta && noxElementos[elemento] && noxElementos[elemento].includes(formCorreta)) {
         return {
           mensagem: `Na grafia química padrão, o número 1 na carga unitária é omitido.`,
           sugestoes: [formCorreta]
@@ -320,11 +378,11 @@ const checarSugestaoQuimica = (texto) => {
       }
     }
 
-    if (noxFixos[elemento]) {
-      const corretaLista = noxFixos[elemento];
-      if (!corretaLista.some(c => c === limpo || c === `${elemento}${numeroCarga}${sinal}`)) {
+    if (noxElementos[elemento]) {
+      const corretaLista = noxElementos[elemento];
+      if (!corretaLista.some(c => c.toUpperCase() === limpo.toUpperCase() || c === `${elemento}${numeroCarga}${sinal}`)) {
         return {
-          mensagem: `O elemento ${elemento} possui NOX/Valência fixa e não costuma formar o íon digitado.`,
+          mensagem: `O elemento ${elemento} não costuma formar o íon digitado. Confira os NOX mais estáveis:`,
           sugestoes: corretaLista
         };
       }
