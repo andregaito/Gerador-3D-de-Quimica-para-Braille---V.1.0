@@ -324,15 +324,15 @@ export default function App() {
     setIsGenerating(true);
     setStlUrl(null); 
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    await new Promise(resolve => setTimeout(resolve, 25));     // Dá um respiro de 25 miliseg para o navegador móvel iniciar a animação visual da engrenagem
+
         try {
           const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
           const url = gerarUrlSTL(modelo3D);
           setStlUrl(url); 
         } catch (error) {
           console.error("Erro ao gerar modelo:", error);
-          alert("Ocorreu um erro ao gerar a malha 3D.");
+          alert("Ocorreu um erro ao gerar a malha 3D!");
         } finally {
           setIsGenerating(false);
         }
@@ -637,7 +637,7 @@ export default function App() {
                         isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
                       }`}
                     >
-                      <Settings className={`w-5 h-5 ${isGenerating ? 'animate-spin' : ''}`} />
+                      <Settings className={`w-5 h-5 inline-block ${isGenerating ? 'animate-spin' : ''}`} />
                       <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
                     </button>
                   </div>
@@ -709,7 +709,7 @@ export default function App() {
                     className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
+                    <span className="hidden sm:inline">Baixar STL</span>
                     <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
