@@ -14,7 +14,7 @@ import logoRoxo from './assets/Quimica ao Alcanse das maos logo transparente ROX
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
-// IMPORTAÇÃO DAS FOTOS DA EQUIPE
+// DADOS DA EQUIPE E ÍCONES
 // =========================================================
 import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
 import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
@@ -23,95 +23,42 @@ import fotoHugoReis from './assets/FotoMembro-HugoReis.jpeg';
 import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
 import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 
-// =========================================================
-// DADOS DA EQUIPE
-// =========================================================
 const EQUIPE = [
-  {
-    nome: "André Vinnicios S. Gaito",
-    titulo: "Graduando em Licenciatura em Química",
-    descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.",
-    email: "andre.gaito@gradu.iq.ufrj.br",
-    lattes: "http://lattes.cnpq.br/9008126975057063",
-    foto: fotoAndreGaito
-  },
-  {
-    nome: "Ricardo Cunha Michel",
-    titulo: "Professor Doutor em Química",
-    descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.",
-    email: "michel@iq.ufrj.br",
-    lattes: "http://lattes.cnpq.br/7631294110820860",
-    foto: fotoRicardoMichel
-  },
-  {
-    nome: "Fernanda Das Neves Costa",
-    titulo: "Prof. Dra. em Química",
-    descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.",
-    email: "FNCosta@IPPN.UFRJ.br",
-    lattes: "http://lattes.cnpq.br/4349970710727785",
-    foto: fotoFernandaNeves
-  },
-  {
-    nome: "Raíssa Ecard da Costa Cruz",
-    titulo: "Doutoranda em Química",
-    descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.",
-    email: "raissaecard@pos.iq.ufrj.br",
-    lattes: "http://lattes.cnpq.br/5822903514342446",
-    foto: fotoRaissaEcard
-  },
-  {
-    nome: "Hugo Costa Reis",
-    titulo: "Doutorando em Química",
-    descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.",
-    email: "hugo.reis@eq.frj.br",
-    lattes: "http://lattes.cnpq.br/3500602218294576",
-    foto: fotoHugoReis
-  },
-  {
-    nome: "Pedro Xavier",
-    titulo: "Mestrando em Química",
-    descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.",
-    email: "pedrofariax@ima.ufrj.br",
-    lattes: "http://lattes.cnpq.br/3367215215251168",
-    foto: fotoPedroXavier
-  }
+  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
+  { nome: "Prof. Dr. Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
+  { nome: "Dra. Fernanda Das Neves Costa", titulo: "Pesquisadora e Coordenadora", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
+  { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
+  { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "http://lattes.cnpq.br/3500602218294576", foto: fotoHugoReis },
+  { nome: "Pedro Xavier", titulo: "Membro do Projeto", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
 ];
 
+const GithubIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>;
+const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>;
+const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
+
 // =========================================================
-// ÍCONES SOCIAIS NATIVOS
+// RENDERIZADOR 3D: COR DINÂMICA E EIXO VERTICAL CORRIGIDO
 // =========================================================
-const GithubIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path>
-    <path d="M9 18c-4.51 2-5-2-7-2"></path>
-  </svg>
-);
-
-const InstagramIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-  </svg>
-);
-
-const LinkedinIcon = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-    <rect width="4" height="12" x="2" y="9"></rect>
-    <circle cx="4" cy="4" r="2"></circle>
-  </svg>
-);
-
-const StlModel = ({ url }) => {
+const StlModel = ({ url, cor }) => {
   const geom = useLoader(STLLoader, url);
+  
+  useEffect(() => {
+    // Computa os limites do objeto para que o Center saiba exatamente onde é o fundo (Y=0)
+    geom.computeBoundingBox();
+    geom.computeVertexNormals();
+  }, [geom]);
+
   return (
-    <mesh geometry={geom} rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
-      <meshStandardMaterial color="#3b82f6" roughness={0.4} metalness={0.1} />
+    // Removida a rotação de -90°. Agora a peça fica "em pé" (na vertical) no cenário.
+    <mesh geometry={geom} castShadow receiveShadow>
+      <meshStandardMaterial color={cor || "#0e52c2"} roughness={0.4} metalness={0.1} />
     </mesh>
   );
 };
 
+// =========================================================
+// LÓGICA DO BRAILLE E DICIONÁRIOS
+// =========================================================
 const BRAILLE_MAP = {
   uppercaseIndicator: [4, 6],
   letters: {
@@ -150,22 +97,10 @@ const getU = (dots) => {
   return String.fromCharCode(code);
 };
 
-const REVERSE_LETTER_MAP = {};
-Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => {
-  REVERSE_LETTER_MAP[getU(dots)] = char;
-});
-
-const REVERSE_SYM_MAP = {};
-Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => {
-  REVERSE_SYM_MAP[getU(dots)] = char;
-});
-REVERSE_SYM_MAP[getU(BRAILLE_MAP.plus)] = '+';
-REVERSE_SYM_MAP[getU(BRAILLE_MAP.minus)] = '-';
-
-const REVERSE_LOW_NUM_MAP = {};
-Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => {
-  REVERSE_LOW_NUM_MAP[getU(dots)] = char;
-});
+const REVERSE_LETTER_MAP = {}; Object.entries(BRAILLE_MAP.letters).forEach(([char, dots]) => { REVERSE_LETTER_MAP[getU(dots)] = char; });
+const REVERSE_SYM_MAP = {}; Object.entries(BRAILLE_MAP.symbols).forEach(([char, dots]) => { REVERSE_SYM_MAP[getU(dots)] = char; });
+REVERSE_SYM_MAP[getU(BRAILLE_MAP.plus)] = '+'; REVERSE_SYM_MAP[getU(BRAILLE_MAP.minus)] = '-';
+const REVERSE_LOW_NUM_MAP = {}; Object.entries(BRAILLE_MAP.lowerNumbers).forEach(([char, dots]) => { REVERSE_LOW_NUM_MAP[getU(dots)] = char; });
 
 const UPPER_INDICATOR = getU(BRAILLE_MAP.uppercaseIndicator);
 const NUMBER_INDICATOR = getU(BRAILLE_MAP.numberSign);
@@ -277,7 +212,6 @@ const checarSugestaoQuimica = (texto) => {
   const limpo = texto.trim();
   if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null;
 
-  // 1. Dicionário Completo de Valências e Íons da Tabela Periódica
   const noxElementos = {
     'H': ['H+', 'H-'],
     'Li': ['Li+'], 'Na': ['Na+'], 'K': ['K+'], 'Rb': ['Rb+'], 'Cs': ['Cs+'],
@@ -302,7 +236,6 @@ const checarSugestaoQuimica = (texto) => {
     'F': ['F-'], 'Cl': ['Cl-', 'Cl+', 'Cl3+', 'Cl5+', 'Cl7+'], 'Br': ['Br-', 'Br+', 'Br3+', 'Br5+', 'Br7+'], 'I': ['I-', 'I+', 'I3+', 'I5+', 'I7+']
   };
 
-  // 2. Dicionário de Óxidos Clássicos do Ensino Médio
   const oxidosClassicos = {
     'NaO': ['Na2O', 'Na2O2'], 'KO': ['K2O', 'K2O2'], 'LiO': ['Li2O'],
     'CaO2': ['CaO'], 'MgO2': ['MgO'], 'BaO2': ['BaO', 'BaO2'],
@@ -321,7 +254,6 @@ const checarSugestaoQuimica = (texto) => {
     'ClO': ['Cl2O', 'Cl2O3', 'Cl2O5', 'Cl2O7'], 'Cl2O2': ['Cl2O', 'Cl2O3']
   };
 
-  // 3. Dicionário de Ácidos, Bases, Sais e Compostos Orgânicos Clássicos
   const compostosEnsinoMedio = {
     'NaOH2': ['NaOH'], 'KOH2': ['KOH'], 'LiOH2': ['LiOH'],
     'Ca(OH)': ['Ca(OH)2'], 'Mg(OH)': ['Mg(OH)2'], 'Ba(OH)': ['Ba(OH)2'],
@@ -899,13 +831,11 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* CAIXA DE ALERTA DE SUGESTÃO QUÍMICA (IUPAC) */}
                 <AlertaSugestao 
                   sugestaoDados={sugestaoQuimica} 
                   aoAplicarSugestao={handleAplicarSugestao} 
                 />
 
-                {/* MENU OCULTO: OPÇÕES AVANÇADAS */}
                 <div className="border-t border-slate-200 pt-4 mt-2">
                   <button 
                     type="button" 
@@ -922,38 +852,14 @@ export default function App() {
                   
                   {showAdvanced && (
                     <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
-                      <ConfigSlider 
-                        label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={corPrincipal}
-                      />
-                      <ConfigSlider 
-                        label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" 
-                        onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={corPrincipal}
-                      />
+                      <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={corPrincipal} />
+                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={corPrincipal} />
                     </div>
                   )}
                 </div>
@@ -961,7 +867,6 @@ export default function App() {
               </form>
             </div>
 
-            {/* VISUALIZADOR 3D COM ACESSIBILIDADE E CORES DINÂMICAS */}
             {stlUrl && (
               <div 
                 role="region" 
@@ -976,7 +881,8 @@ export default function App() {
                   <button
                     onClick={handleDownload}
                     aria-label="Baixar arquivo 3D formato STL pronto para impressão"
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2"
+                    className="px-4 py-2 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2 hover:opacity-90"
+                    style={{ backgroundColor: corPrincipal }}
                   >
                     <Download className="w-4 h-4" />
                     <span className="hidden sm:inline">Baixar .STL Pronto</span>
@@ -994,13 +900,9 @@ export default function App() {
                     aria-label={autoRotate ? "Desligar rotação automática do modelo 3D" : "Ligar rotação automática do modelo 3D"}
                     title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
                     className="absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all"
-                    style={autoRotate ? { backgroundColor: corPrincipal, ring: `2px solid ${corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}
+                    style={autoRotate ? { backgroundColor: corPrincipal, border: `2px solid ${corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}
                   >
-                    <img 
-                      src={iconeRotacao}
-                      alt="" 
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <img src={iconeRotacao} alt="" className="w-12 h-12 rounded-full object-cover" />
                   </button>
 
                   <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
@@ -1009,9 +911,12 @@ export default function App() {
                       <ambientLight intensity={0.5} />
                       <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
                       
+                      {/* O componente Center bottom centraliza a peça e usa o Bounding Box 
+                          para garantir que ela não cruze para debaixo do piso virtual (Y=0) */}
                       <Bounds fit clip observe margin={1.2}>
                         <Center bottom position={[0, 0, 0]}>
-                          <StlModel url={stlUrl} />
+                          {/* Passamos corPrincipal para pintar a malha dinamicamente */}
+                          <StlModel url={stlUrl} cor={corPrincipal} />
                         </Center>
                       </Bounds>
                     </Suspense>
