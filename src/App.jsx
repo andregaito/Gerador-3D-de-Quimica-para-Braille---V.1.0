@@ -1432,28 +1432,28 @@ export default function App() {
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Box className="w-4 h-4 text-slate-500" /> Gerador Braille 3D
                   </h4>
-                  <p>Basta digitar qualquer fórmula química ou frase no campo de texto principal. O sistema traduz instantaneamente os caracteres e gera um modelo 3D em tempo real. Clique em <strong>"Visualizar STL"</strong> para carregar a malha e interagir com ela. Após confirmar que a peça está conforme desejado, basta clicar em <strong>Baixar STL<strong> para fazer o Download da sua nova peça 3D pronta ser impressa.</p>
+                  <p>Basta digitar qualquer fórmula química ou frase no campo de texto principal. O sistema traduz instantaneamente os caracteres e gera um modelo 3D em tempo real. Clique em <strong>"Visualizar STL"</strong> para carregar a malha e interagir com ela. Após confirmar que a peça está conforme desejado, basta clicar em <strong>Baixar STL</strong> para fazer o Download da sua nova peça 3D pronta ser impressa.</p>
                 </div>
                 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <ArrowRight className="w-4 h-4 text-slate-500" /> Leitura Tátil 2D
                   </h4>
-                  <p>Abaixo do visualizador, o painel exibe um mapa bidimensional das celas Braille geradas. Em que as <strong>bolinhas pretas<strong> preenchidas representam os pontos em relevo. Isso funciona como um mapa visual simples para ajudar professores e alunos a conferirem a grafia correta e começarem a se familiarizar com os caracteres e grafia Braille.</p>
+                  <p>Abaixo do visualizador, o painel exibe um mapa bidimensional das celas Braille geradas. Em que as <strong>bolinhas pretas</strong> preenchidas representam os pontos em relevo. Isso funciona como um mapa visual simples para ajudar professores e alunos a conferirem a grafia correta e começarem a se familiarizar com os caracteres e grafia Braille.</p>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Copy className="w-4 h-4 text-slate-500" /> Texto Braille (Unicode)
                   </h4>
-                  <p>A caixa de texto Unicode converte o texto digital para caracteres de fonte Braille real. Clicando em <strong>"Copiar Texto Braille"<strong>, você pode colar a frase pronta em e-mails, apostilas e redes sociais, facilitando a comunicação acessível e compartilhamento externo.</p>
+                  <p>A caixa de texto Unicode converte o texto digital para caracteres de fonte Braille real. Clicando em <strong>"Copiar Texto Braille"</strong>, você pode colar a frase pronta em e-mails, apostilas e redes sociais, facilitando a comunicação acessível e compartilhamento externo.</p>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Languages className="w-4 h-4 text-slate-500" /> Tradutor Reverso e Áudio
                   </h4>
-                  <p>Encontrou um texto em Braille e não sabe o que significa? Simplesmente cole os símbolos no campo <strong>"Digite o texto Braille"<strong>, e a plataforma traduzirá na hora para o português. Você também pode clicar em <strong>"Ouvir"<strong> para escutar a leitura da fórmula ou frase traduzida.</p>
+                  <p>Encontrou um texto em Braille e não sabe o que significa? Simplesmente cole os símbolos no campo <strong>"Digite o texto Braille"</strong>, e a plataforma traduzirá na hora para o português. Você também pode clicar em <strong>"Ouvir"</strong> para escutar a leitura da fórmula ou frase traduzida.</p>
                 </div>
               </div>
             </div>
@@ -1483,9 +1483,9 @@ export default function App() {
               <div className="p-5 rounded-lg border-l-4 space-y-4 leading-relaxed text-sm sm:text-base text-slate-600 shadow-xs" style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}>
                 <div className="space-y-1">
                   <h4 className="font-extrabold text-red-700 text-base uppercase tracking-wider flex items-center gap-1.5">
-                    ⚠️ REGRA DE OURO: Para impressão de peças em Braille, SEMPRE IMPRIMA NA <strong>VERTICAL<strong> (Em Pé)
+                    ⚠️ REGRA DE OURO: Para impressão de peças em Braille, SEMPRE IMPRIMA NA VERTICAL (Em Pé)
                   </h4>
-                  <p>Ao exportar o arquivo ".stl" e jogá-lo no fatiador, certifique-se de que a placa de texto está posicionada <strong>na vertical ("em pé") sobre a mesa<strong>, orientada ao longo do eixo Z.</p>
+                  <p>Ao exportar o arquivo <strong>".stl"</strong> e jogá-lo no fatiador, certifique-se de que a placa de texto está posicionada <strong>na vertical ("em pé") sobre a mesa</strong>, orientada ao longo do eixo Z.</p>
                 </div>
                 
                 <div className="space-y-2 text-xs sm:text-sm bg-white/60 p-3 rounded border border-slate-200/60">
