@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
@@ -25,11 +25,11 @@ import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 
 const EQUIPE = [
   { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
-  { nome: "Prof. Dr. Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
-  { nome: "Dra. Fernanda Das Neves Costa", titulo: "Pesquisadora e Coordenadora", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
+  { nome: "Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
+  { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
   { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
   { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "http://lattes.cnpq.br/3500602218294576", foto: fotoHugoReis },
-  { nome: "Pedro Xavier", titulo: "Membro do Projeto", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
+  { nome: "Pedro Xavier", titulo: "Mestrando em Química", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
 ];
 
 const GithubIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>;
@@ -37,16 +37,25 @@ const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg"
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
 // =========================================================
-// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS
+// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS (BUGFIX)
 // =========================================================
 const StlModel = ({ url, cor }) => {
-  const geom = useLoader(STLLoader, url);
+  const originalGeom = useLoader(STLLoader, url);
   
-  useEffect(() => {
-    geom.rotateX(-Math.PI / 2);
-    geom.computeBoundingBox();
-    geom.computeVertexNormals();
-  }, [geom]);
+  const geom = useMemo(() => {
+    // Clonamos a geometria para não modificar o cache do useLoader.
+    // Isso evita o bug de dupla rotação ao trocar de abas.
+    const clonedGeom = originalGeom.clone();
+    
+    // Deitamos a peça em relação ao plano X nativamente (Transforma o eixo Z do JSCAD no eixo Y do Three.js)
+    clonedGeom.rotateX(-Math.PI / 2);
+    
+    // Recalculamos os limites ANTES de jogar pro <Center bottom> da tela
+    clonedGeom.computeBoundingBox();
+    clonedGeom.computeVertexNormals();
+    
+    return clonedGeom;
+  }, [originalGeom]);
 
   return (
     <mesh geometry={geom} castShadow receiveShadow>
@@ -1319,7 +1328,7 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: INSTRUÇÕES */}
+        {/* ABA: INSTRUÇÕES (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
           <div 
@@ -1333,7 +1342,7 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: SAIBA MAIS */}
+        {/* ABA: SAIBA MAIS (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
           <div 
