@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
@@ -1435,6 +1436,7 @@ export default function App() {
         </div>
       </footer>
 
+      <SpeedInsights />
     </div>
   );
 }
