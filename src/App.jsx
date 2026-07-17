@@ -159,13 +159,13 @@ const getTheme = (idOrHex) => {
     },
     '#1a8441': { // TEMA EM COR VERDE
       cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194',
-      btnVisualizar: '#591884', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
+      btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
       textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
       textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logoRoxa: false, textoSubCaixa: '#1e293b'
     },
     '#511576': { // TEMA EM COR ROXO
       cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da',
-      btnVisualizar: '#a0f658', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd',
+      btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd',
       textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658',
       textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logoRoxa: true, textoSubCaixa: '#000000'
     }
