@@ -43,17 +43,14 @@ const StlModel = ({ url, cor }) => {
   const originalGeom = useLoader(STLLoader, url);
   
   const geom = useMemo(() => {
-    // Clonamos a geometria para não modificar o cache do useLoader.
-    // Isso evita o bug de dupla rotação ao trocar de abas.
+    //  Geometria foi cloanda para não modificar o cache do useLoader. Isso evita o bug de dupla rotação ao trocar de abas.
     const clonedGeom = originalGeom.clone();
     
     // Deitamos a peça em relação ao plano X nativamente (Transforma o eixo Z do JSCAD no eixo Y do Three.js)
     clonedGeom.rotateX(-Math.PI / 2);
     
     // Recalculamos os limites ANTES de jogar pro <Center bottom> da tela
-    clonedGeom.computeBoundingBox();
-    clonedGeom.computeVertexNormals();
-    
+    clonedGeom.computeBoundingBox();    
     return clonedGeom;
   }, [originalGeom]);
 
@@ -1119,39 +1116,38 @@ export default function App() {
                       />
                       
                       <div className="flex items-center justify-between mb-2">
-                        <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-                          <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: theme.corPrincipal }} />
-                          Tradução em Português
-                        </span>
-                        <button
-                          onClick={handleSpeak}
-                          disabled={!translatedText}
-                          aria-label="Ouvir tradução em voz alta em português"
-                          title="Ouvir tradução em voz alta"
-                          className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
-                        >
-                          <Volume2 className="w-3 h-3 mr-1" />
-                          Ouvir
-                        </button>
-                      </div>
-
-                      <div 
-                        aria-live="polite" 
-                        aria-atomic="true"
-                        className="text-lg text-slate-800 font-medium min-h-[2.5rem] whitespace-pre-wrap break-words bg-slate-200/50 px-3 py-2 rounded-md border border-slate-200 flex-1"
-                      >
-                        {translatedText || <span className="text-slate-400 italic font-normal">Aguardando texto em braille...</span>}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="h-full flex items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-lg p-12">Nenhuma fórmula digitada.</div>
-              )}
-            </div>
-          </div>
-        )}
+  <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
+    <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: theme.corPrincipal }} />
+    Tradução em Português
+  </span>
+  <div className="flex gap-2">
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(translatedText);
+        alert("Tradução copiada!");
+      }}
+      aria-label="Copiar texto traduzido"
+      title="Copiar texto traduzido"
+      className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
+      style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
+    >
+      <Copy className="w-3 h-3 mr-1" />
+      Copiar Tradução
+    </button>
+    <button
+      onClick={handleSpeak}
+      disabled={!translatedText}
+      aria-label="Ouvir tradução em voz alta em português"
+      title="Ouvir tradução em voz alta"
+      className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
+    >
+      <Volume2 className="w-3 h-3 mr-1" />
+      Ouvir
+    </button>
+  </div>
+</div>
+                      )}
 
         {/* ======================================================== */}
         {/* ABA: SOBRE O PROJETO */}
