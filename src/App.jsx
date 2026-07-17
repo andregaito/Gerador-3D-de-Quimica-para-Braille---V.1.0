@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useRef } from 'react';
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
@@ -37,19 +37,20 @@ const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg"
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
 // =========================================================
-// RENDERIZADOR 3D: COR DINÂMICA E EIXO VERTICAL CORRIGIDO
+// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS
 // =========================================================
 const StlModel = ({ url, cor }) => {
   const geom = useLoader(STLLoader, url);
   
   useEffect(() => {
-    // Computa os limites do objeto para que o Center saiba exatamente onde é o fundo (Y=0)
+    // Rotaciona a geometria nativamente na memória para trocar o eixo Z pelo Y.
+    // Isso garante que o cálculo dos limites "entenda" que a placa está deitada.
+    geom.rotateX(-Math.PI / 2);
     geom.computeBoundingBox();
     geom.computeVertexNormals();
   }, [geom]);
 
   return (
-    // Removida a rotação de -90°. Agora a peça fica "em pé" (na vertical) no cenário.
     <mesh geometry={geom} castShadow receiveShadow>
       <meshStandardMaterial color={cor || "#0e52c2"} roughness={0.4} metalness={0.1} />
     </mesh>
@@ -148,9 +149,21 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
 );
 
 // =========================================================
-// TESTADOR DE PALETA DE CORES EM TEMPO REAL
+// TESTADOR DE PALETA DE CORES: POPOVER DINÂMICO
 // =========================================================
 const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) => {
+  const [menuAberto, setMenuAberto] = useState(false);
+
+  const CORES_PREDEFINIDAS = [
+    { nome: 'Azul', hex: '#0e52c2' },
+    { nome: 'Roxo', hex: '#7e22ce' },
+    { nome: 'Rosa', hex: '#db2777' },
+    { nome: 'Vermelho', hex: '#dc2626' },
+    { nome: 'Laranja', hex: '#ea580c' },
+    { nome: 'Amarelo', hex: '#ca8a04' },
+    { nome: 'Verde', hex: '#16a34a' }
+  ];
+
   const handleSwitch = () => {
     if (!modoRoxo) {
       setModoRoxo(true);
@@ -159,19 +172,28 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
       setModoRoxo(false);
       setCorPrincipal('#0e52c2');
     }
+    setMenuAberto(false);
   };
 
-  const handleColorPicker = (e) => {
+  const handleColorSelect = (hex) => {
+    setModoRoxo(hex === '#7e22ce');
+    setCorPrincipal(hex);
+    setMenuAberto(false);
+  };
+
+  const handleCustomColor = (e) => {
     setModoRoxo(false);
     setCorPrincipal(e.target.value);
   };
 
   return (
     <div 
-      className="flex items-center space-x-3 bg-slate-100/90 px-3 py-1.5 rounded-full border border-slate-200 shadow-sm flex-shrink-0" 
+      className="relative flex items-center space-x-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border shadow-sm flex-shrink-0 z-50 transition-colors duration-500" 
       role="region" 
       aria-label="Testador rápido de paleta de cores"
+      style={{ borderColor: `${corPrincipal}40` }}
     >
+      {/* Botão Switch Clássico */}
       <button
         type="button"
         onClick={handleSwitch}
@@ -179,34 +201,68 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
         aria-checked={modoRoxo}
         aria-label="Alternar tema entre Azul Padrão e Roxo"
         title="Alternar entre Azul Padrão e Roxo"
-        className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-slate-400 cursor-pointer"
+        className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 cursor-pointer"
         style={{ backgroundColor: modoRoxo ? '#7e22ce' : '#0e52c2' }}
       >
         <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${modoRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
 
-      <label 
-        className="cursor-pointer text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center relative"
-        title="Escolher qualquer cor HEX personalizada"
-        aria-label="Seletor de cor personalizada"
-      >
-        <Palette 
-          className="w-5 h-5 transition-colors" 
-          style={{ color: !modoRoxo && corPrincipal !== '#0e52c2' ? corPrincipal : undefined }} 
-        />
-        <input 
-          type="color" 
-          value={corPrincipal} 
-          onChange={handleColorPicker} 
-          className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
-        />
-      </label>
+      {/* Ícone de Paleta que abre o Popover */}
+      <div className="relative">
+        <button 
+          onClick={() => setMenuAberto(!menuAberto)}
+          className="cursor-pointer text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center p-1"
+          title="Escolher paleta de cores personalizada"
+          aria-label="Abrir seletor de paleta de cores"
+          aria-expanded={menuAberto}
+        >
+          <Palette 
+            className="w-5 h-5 transition-colors" 
+            style={{ color: !modoRoxo && corPrincipal !== '#0e52c2' ? corPrincipal : undefined }} 
+          />
+        </button>
+
+        {/* Menu Popover com Cores */}
+        {menuAberto && (
+          <div 
+            className="absolute top-full right-0 mt-3 p-3 bg-white rounded-xl shadow-xl border-2 flex flex-col gap-3 w-56 animate-fadeIn transition-colors duration-500"
+            style={{ borderColor: corPrincipal }}
+          >
+            <span className="text-[11px] font-bold text-slate-500 uppercase px-1">Cores Predefinidas</span>
+            <div className="flex flex-wrap gap-2 px-1">
+              {CORES_PREDEFINIDAS.map(c => (
+                <button
+                  key={c.nome}
+                  type="button"
+                  onClick={() => handleColorSelect(c.hex)}
+                  className={`w-7 h-7 rounded-full shadow-sm hover:scale-110 transition-transform ${corPrincipal === c.hex ? 'ring-2 ring-offset-2 ring-slate-400' : ''}`}
+                  style={{ backgroundColor: c.hex }}
+                  title={c.nome}
+                  aria-label={`Mudar para cor ${c.nome}`}
+                />
+              ))}
+            </div>
+            
+            <div className="border-t border-slate-100 my-1"></div>
+            
+            <label className="flex items-center justify-between px-1 cursor-pointer hover:bg-slate-50 rounded p-1.5 transition-colors">
+              <span className="text-xs font-semibold text-slate-600">Cor Livre (RGB)</span>
+              <input 
+                type="color" 
+                value={corPrincipal} 
+                onChange={handleCustomColor} 
+                className="w-7 h-7 rounded cursor-pointer border-0 p-0 shadow-sm"
+              />
+            </label>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
 
 // =========================================================
-// MOTOR ROBUSTO DE VALIDAÇÃO E SUGESTÃO QUÍMICA (ENSINO MÉDIO & SUPERIOR)
+// MOTOR ROBUSTO DE VALIDAÇÃO E SUGESTÃO QUÍMICA
 // =========================================================
 const checarSugestaoQuimica = (texto) => {
   const limpo = texto.trim();
@@ -331,7 +387,7 @@ const checarSugestaoQuimica = (texto) => {
   return null;
 };
 
-// COMPONENTE VISUAL: CAIXA DE ALERTA DE SUGESTÃO QUÍMICA
+// COMPONENTE VISUAL: CAIXA DE ALERTA
 const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
   if (!sugestaoDados) return null;
 
@@ -680,9 +736,13 @@ export default function App() {
   const celasFisicas = cells.filter(c => !c.isNewline);
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-800">
+    <div 
+      className="flex flex-col min-h-screen font-sans text-slate-800 transition-colors duration-500"
+      style={{ backgroundColor: `${corPrincipal}1A` }} // Tonalidade colorida no fundo geral, de acordo com as fotos de referência
+    >
       
-      <header className="bg-white pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 shadow-sm z-10 relative">
+      {/* HEADER INTEGRADO AO FUNDO COLORIDO */}
+      <header className="pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 z-10 relative">
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
           <img 
             src={modoRoxo ? logoRoxo : logoPrincipal} 
@@ -700,6 +760,7 @@ export default function App() {
         </div>
       </header>
 
+      {/* NAVBAR */}
       <nav 
         aria-label="Navegação Principal do Projeto" 
         className="shadow-md sticky top-0 z-20 transition-colors duration-300"
@@ -741,9 +802,13 @@ export default function App() {
         {/* ======================================================== */}
         {activeTab === 'gerador' && (
           <div id="painel-gerador" role="tabpanel" aria-label="Gerador Braille" className="space-y-6 fade-in">
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            
+            {/* INFORMAÇÕES - BORDAS SÓLIDAS DINÂMICAS */}
+            <div 
+              className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ border: `2px solid ${corPrincipal}` }}
+            >
               <div className="text-slate-600 space-y-3">
-                
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <p className="flex-1 leading-relaxed">
                     Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
@@ -786,7 +851,11 @@ export default function App() {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            {/* FORMULÁRIO */}
+            <div 
+              className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ border: `2px solid ${corPrincipal}` }}
+            >
               <form onSubmit={handleGenerate} className="flex flex-col gap-4">
                 
                 <div className="flex flex-col sm:flex-row gap-4">
@@ -867,11 +936,13 @@ export default function App() {
               </form>
             </div>
 
+            {/* VISUALIZADOR 3D */}
             {stlUrl && (
               <div 
                 role="region" 
                 aria-label="Área de pré-visualização do modelo 3D em formato STL"
-                className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"
+                className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col"
+                style={{ border: `2px solid ${corPrincipal}` }}
               >
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold text-slate-800 flex items-center">
@@ -885,7 +956,7 @@ export default function App() {
                     style={{ backgroundColor: corPrincipal }}
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Baixar .STL Pronto</span>
+                    <span className="hidden sm:inline">Baixar Arquivo STL</span>
                     <span className="sm:hidden">Baixar STL</span>
                   </button>
                 </div>
@@ -911,11 +982,8 @@ export default function App() {
                       <ambientLight intensity={0.5} />
                       <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
                       
-                      {/* O componente Center bottom centraliza a peça e usa o Bounding Box 
-                          para garantir que ela não cruze para debaixo do piso virtual (Y=0) */}
                       <Bounds fit clip observe margin={1.2}>
                         <Center bottom position={[0, 0, 0]}>
-                          {/* Passamos corPrincipal para pintar a malha dinamicamente */}
                           <StlModel url={stlUrl} cor={corPrincipal} />
                         </Center>
                       </Bounds>
@@ -933,7 +1001,11 @@ export default function App() {
               </div>
             )}
 
-            <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-slate-200">
+            {/* TRADUÇÃO VISUAL 2D E UNICODE */}
+            <div 
+              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ border: `2px solid ${corPrincipal}` }}
+            >
               <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">
                 Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" />
               </h2>
@@ -1042,7 +1114,11 @@ export default function App() {
         {/* ABA: SOBRE O PROJETO */}
         {/* ======================================================== */}
         {activeTab === 'sobre' && (
-          <div id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-slate-700 fade-in space-y-8 text-left">
+          <div 
+            id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" 
+            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-slate-700 fade-in space-y-8 text-left"
+            style={{ border: `2px solid ${corPrincipal}` }}
+          >
             <div className="border-b border-slate-100 pb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
               <p className="text-lg font-medium mt-2 transition-colors" style={{ color: corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
@@ -1072,7 +1148,11 @@ export default function App() {
         {/* ABA: PARCERIAS */}
         {/* ======================================================== */}
         {activeTab === 'parcerias' && (
-          <div id="painel-parcerias" role="tabpanel" aria-label="Parcerias" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 fade-in text-center">
+          <div 
+            id="painel-parcerias" role="tabpanel" aria-label="Parcerias" 
+            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 fade-in text-center"
+            style={{ border: `2px solid ${corPrincipal}` }}
+          >
             <div className="flex justify-center mb-6">
               <div 
                 className="p-5 rounded-full shadow-inner transition-colors" 
@@ -1118,14 +1198,21 @@ export default function App() {
         {/* ======================================================== */}
         {activeTab === 'equipe' && (
           <div id="painel-equipe" role="tabpanel" aria-label="Nossa Equipe" className="space-y-6 fade-in">
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-6">
+            <div 
+              className="bg-white p-8 rounded-xl shadow-sm transition-colors duration-500 mb-6"
+              style={{ border: `2px solid ${corPrincipal}` }}
+            >
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
               <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {EQUIPE.map((membro, index) => (
-                <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 transition-all hover:shadow-md">
+                <div 
+                  key={index} 
+                  className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 hover:shadow-md"
+                  style={{ border: `2px solid ${corPrincipal}` }}
+                >
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-100 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
                     {membro.foto ? (
                       <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
@@ -1166,7 +1253,11 @@ export default function App() {
         {/* ABA: ACHOU UM BUG? */}
         {/* ======================================================== */}
         {activeTab === 'bug' && (
-          <div id="painel-bug" role="tabpanel" aria-label="Reporte de Bug" className="bg-white p-8 sm:p-12 rounded-xl shadow-sm border border-slate-200 text-center fade-in">
+          <div 
+            id="painel-bug" role="tabpanel" aria-label="Reporte de Bug" 
+            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-center fade-in"
+            style={{ border: `2px solid ${corPrincipal}` }}
+          >
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-red-100 rounded-full text-red-600" aria-hidden="true">
                 <Bug className="w-12 h-12" />
@@ -1197,7 +1288,11 @@ export default function App() {
         {/* ABA: INSTRUÇÕES (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
-          <div id="painel-instrucoes" role="tabpanel" aria-label="Instruções" className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+          <div 
+            id="painel-instrucoes" role="tabpanel" aria-label="Instruções" 
+            className="bg-white p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
+            style={{ border: `2px solid ${corPrincipal}` }}
+          >
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
             <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
           </div>
@@ -1207,7 +1302,11 @@ export default function App() {
         {/* ABA: SAIBA MAIS (Placeholder) */}
         {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
-          <div id="painel-saiba-mais" role="tabpanel" aria-label="Saiba Mais" className="bg-white p-12 rounded-xl shadow-sm border border-slate-200 text-center text-slate-500 fade-in">
+          <div 
+            id="painel-saiba-mais" role="tabpanel" aria-label="Saiba Mais" 
+            className="bg-white p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
+            style={{ border: `2px solid ${corPrincipal}` }}
+          >
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
             <p>Área reservada para documentações futuras.</p>
           </div>
