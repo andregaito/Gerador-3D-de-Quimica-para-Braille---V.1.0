@@ -30,10 +30,10 @@ import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
 import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 
 const EQUIPE = [
-  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
+  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsible pela idealização, programação, modelagem e impressão 3D.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
   { nome: "Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
   { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
-  { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
+  { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas interventions educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
   { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "http://lattes.cnpq.br/3500602218294576", foto: fotoHugoReis },
   { nome: "Pedro Xavier", titulo: "Mestrando em Química", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
 ];
@@ -397,7 +397,7 @@ const checarSugestaoQuimica = (texto) => {
     'HNO': ['HNO2', 'HNO3'], 'H2NO3': ['HNO3'], 'HNO4': ['HNO3'],
     'HPO4': ['H3PO4'], 'H2PO4': ['H3PO4'], 'H4PO4': ['H3PO4'], 'H3PO2': ['H3PO2', 'H3PO3', 'H3PO4'],
     'HCO3': ['H2CO3'], 'H3CO3': ['H2CO3'],
-    'HClO': ['HClO', 'HClO2', 'HClO3', 'HClO4'], 'H2ClO4': ['HClO4'],
+    'HClO': ['HClO', 'HClO2', 'HClO3', 'HClO4'], 'H2ClO4': ['Helvetica'],
     'H2S2': ['H2S'], 'HCN2': ['HCN'],
     'NaCl2': ['NaCl'], 'Na2Cl': ['NaCl'], 'KCl2': ['KCl'],
     'NaSO4': ['Na2SO4'], 'KSO4': ['K2SO4'], 'CaSO42': ['CaSO4'],
@@ -1261,7 +1261,7 @@ export default function App() {
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3>
               <p className="leading-relaxed">
-                Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.
+                Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% accessibles.
               </p>
             </div>
           </div>
@@ -1402,22 +1402,103 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
+              Ou envie um e-mail para:: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* ABA: INSTRUÇÕES */}
+        {/* ABA: INSTRUÇÕES (COMPLETA, ACESSÍVEL E DETALHADA) */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
           <div 
-            id="painel-instrucoes" role="tabpanel" aria-label="Instruções" 
-            className="p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
+            id="painel-instrucoes" role="tabpanel" aria-label="Instruções de Uso" 
+            className="p-6 sm:p-10 rounded-xl shadow-sm transition-colors duration-500 text-left fade-in space-y-8"
             style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
-            <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
-            <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Manual de Instruções</h2>
+              <p className="text-sm sm:text-base text-slate-500 mt-1">Veja como extrair o máximo potencial do gerador digital e da sua impressora 3D.</p>
+            </div>
+
+            {/* BLOCO 1: NAVEGANDO NO PORTAL */}
+            <div className="space-y-4">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-500" />
+                1. Como Usar os Recursos do Site
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
+                  <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Box className="w-4 h-4 text-slate-500" /> Gerador Braille 3D
+                  </h4>
+                  <p>Basta digitar qualquer fórmula química ou frase no campo de texto principal. O sistema traduz instantaneamente os caracteres e gera um modelo 3D em tempo real. Clique em <strong>"Visualizar STL"</strong> para carregar a malha e interagir com ela.</p>
+                </div>
+                
+                <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
+                  <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <ArrowRight className="w-4 h-4 text-slate-500" /> Leitura Tátil 2D
+                  </h4>
+                  <p>Abaixo do visualizador, o painel exibe um mapa bidimensional das celas geradas. As bolinhas preenchidas em **escuro** representam os pontos em relevo. Isso funciona como um mapa visual simples para ajudar professores e alunos a conferirem a grafia correta.</p>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
+                  <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Copy className="w-4 h-4 text-slate-500" /> Texto Braille (Unicode)
+                  </h4>
+                  <p>A caixa de texto Unicode converte o texto digital para caracteres de fonte Braille real. Clicando em **"Copiar Texto Braille"**, você pode colar a frase pronta em e-mails, apostilas e redes sociais, facilitando a comunicação acessível externa.</p>
+                </div>
+
+                <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1">
+                  <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Languages className="w-4 h-4 text-slate-500" /> Tradutor Reverso e Áudio
+                  </h4>
+                  <p>Encontrou um texto em Braille e não sabe o que significa? Cole os símbolos no campo **"Digite o texto Braille"**. A plataforma traduzirá na hora para o português escrito. Você também pode clicar em **"Ouvir"** para escutar a leitura com uma voz limpa e natural.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* BLOCO 2: OPÇÕES AVANÇADAS */}
+            <div className="space-y-4">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-slate-500" />
+                2. Ajustes de Parâmetros e Ergonomia
+              </h3>
+              <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 text-sm sm:text-base text-slate-600 leading-relaxed space-y-2">
+                <p>Ao expandir a barra de <strong>"Opções Avançadas de Impressão 3D"</strong>, você ganha controle absoluto sobre a geometria da matriz física. É possível alterar livremente os diâmetros e as alturas dos pontos, a distância padrão entre celas e as margens da placa.</p>
+                <p className="font-medium text-slate-700">💡 Por que mudar isso?</p>
+                <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+                  <li><strong>Ajuste Tátil:</strong> Pessoas que estão aprendendo a ler o Braille agora podem preferir pontos ligeiramente mais altos ou celas mais espaçadas.</li>
+                  <li><strong>Calibração do Bico:</strong> Se sua impressora 3D estiver usando um bico mais largo (como 0.6mm ou 0.8mm), você pode alargar o diâmetro do ponto para evitar falhas de extrusão.</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* BLOCO 3: GUIA DE IMPRESSÃO 3D */}
+            <div className="space-y-4">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-800 flex items-center gap-2">
+                <Box className="w-5 h-5 text-slate-500" />
+                3. Diretrizes de Impressão 3D (Fatiamento)
+              </h3>
+              <div className="p-5 rounded-lg border-l-4 space-y-4 leading-relaxed text-sm sm:text-base text-slate-600 shadow-xs" style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}>
+                <div className="space-y-1">
+                  <h4 className="font-extrabold text-red-700 text-base uppercase tracking-wider flex items-center gap-1.5">
+                    ⚠️ REGRA DE OURO: Impressão Sempre na Vertical (Em Pé)
+                  </h4>
+                  <p>Ao exportar o arquivo `.stl` e jogá-lo no fatiador, certifique-se de que a placa de texto está posicionada **na vertical ("em pé") sobre a mesa**, orientada ao longo do eixo Z.</p>
+                </div>
+                
+                <div className="space-y-2 text-xs sm:text-sm bg-white/60 p-3 rounded border border-slate-200/60">
+                  <p><strong>Por que não imprimir deitada?</strong> Se a peça for impressa deitada horizontalmente, a ponta esférica de cada ponto Braille será fatiada em camadas horizontais concêntricas. Isso gera um efeito "escada" serrilhado. Além de deixar o ponto áspero e desconfortável, pode arranhar ou machucar as pontas dos dedos de pessoas cegas após minutos de leitura contínua.</p>
+                  <p><strong>Vantagem de imprimir em pé:</strong> Na vertical, o bico da impressora desenha o contorno circular perfeito de cada ponto usando os movimentos contínuos dos eixos X e Y. As camadas sobem de forma lisa, criando semiesferas perfeitamente polidas, arredondadas e confortáveis para o toque tátil.</p>
+                </div>
+
+                <div className="pt-2">
+                  <h4 className="font-bold text-slate-800 mb-1">Qual software fatiador devo utilizar?</h4>
+                  <p>Caso você não saiba por onde fatiar suas peças ou esteja montando um laboratório escolar maker agora, recomendamos fortemente o uso do <a href="https://github.com/SoftFever/OrcaSlicer" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:opacity-80 transition-opacity" style={{ color: theme.corPrincipal }}>OrcaSlicer (Clique aqui para acessar o Repositório Oficial)</a>. Ele é uma ferramenta moderna, intuitiva, de código aberto e possui perfis nativos excelentes para as principais impressoras do mercado.</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
