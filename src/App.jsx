@@ -43,25 +43,35 @@ const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg"
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
 // =========================================================
-// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS (BUGFIX)
+// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS (CORRIGIDO)
 // =========================================================
 const StlModel = ({ url, cor }) => {
   const originalGeom = useLoader(STLLoader, url);
   
   const geom = useMemo(() => {
-    // Geometria foi clonada para não modificar o cache do useLoader. Isso evita o bug de dupla rotação ao trocar de abas.
     const clonedGeom = originalGeom.clone();
     
-    // Deitamos a peça em relação ao plano X nativamente (Transforma o eixo Z do JSCAD no eixo Y do Three.js)
-    clonedGeom.rotateX(-Math.PI / 2);
+    // 1. ORIENTAÇÃO (Em pé): Removido o rotateX(-Math.PI / 2) que deitava a peça.
+    // Agora ela fica posicionada na vertical, ideal para leitura frontal.
+    // (Se quiser inclinar levemente para trás como uma placa de mesa, use: clonedGeom.rotateX(-0.15);)
     
-    // Recalculamos os limites ANTES de jogar pro <Center bottom> da tela
+    // 2. POSICIONAMENTO ABSOLUTO (Sobre o plano Y=0):
+    clonedGeom.computeBoundingBox();
+    const box = clonedGeom.boundingBox;
+    
+    const centerX = (box.max.x + box.min.x) / 2;
+    const centerZ = (box.max.z + box.min.z) / 2;
+    
+    // Deslocamos o centro horizontal para (0,0) e empurramos o ponto mais baixo da peça (-box.min.y) 
+    // para exatamente Y = 0. Isso garante que ela nunca atravesse o chão!
+    clonedGeom.translate(-centerX, -box.min.y, -centerZ);
+    
     clonedGeom.computeBoundingBox();    
     return clonedGeom;
   }, [originalGeom]);
 
   return (
-    <mesh geometry={geom} castShadow receiveShadow>
+    <mesh geometry={geom} castShadow receiveShadow position={[0, 0, 0]}>
       <meshStandardMaterial color={cor || "#0e52c2"} roughness={0.4} metalness={0.1} />
     </mesh>
   );
@@ -786,13 +796,39 @@ export default function App() {
     recognition.start();
   };
 
-  const handleSpeak = () => {
-    if (!translatedText) return;
-    const utterance = new SpeechSynthesisUtterance(translatedText);
-    utterance.lang = 'pt-BR';
-    window.speechSynthesis.speak(utterance);
-  };
+const handleSpeak = () => {
+  if (!translatedText) return;
+  
+  // Interrompe qualquer áudio anterior que ainda esteja tocando
+  window.speechSynthesis.cancel();
 
+  const utterance = new SpeechSynthesisUtterance(translatedText);
+  utterance.lang = 'pt-BR';
+  
+  // Velocidade ligeiramente reduzida (0.9 a 0.95) remove o tom apressado e robótico
+  utterance.rate = 0.92;
+  utterance.pitch = 1.0;
+
+  // Filtro inteligente para capturar vozes neurais e naturais instaladas no dispositivo/navegador
+  const vozes = window.speechSynthesis.getVoices();
+  const vozNatural = vozes.find(v => 
+    v.lang.includes('pt') && (
+      v.name.includes('Natural') || 
+      v.name.includes('Online') || 
+      v.name.includes('Google') ||
+      v.name.includes('Luciana') ||
+      v.name.includes('Francisca') ||
+      v.name.includes('Antonio')
+    )
+  ) || vozes.find(v => v.lang.includes('pt'));
+
+  if (vozNatural) {
+    utterance.voice = vozNatural;
+  }
+
+  window.speechSynthesis.speak(utterance);
+};
+  
   const celasFisicas = cells.filter(c => !c.isNewline);
 
   return (
@@ -1045,7 +1081,6 @@ export default function App() {
                       <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
                       
                       <Bounds fit clip observe margin={1.2}>
-                        <Center bottom position={[0, 0, 0]}>
                           <StlModel url={stlUrl} cor={theme.corPrincipal} />
                         </Center>
                       </Bounds>
