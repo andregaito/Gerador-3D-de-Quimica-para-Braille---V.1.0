@@ -3,7 +3,7 @@ import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Tras
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
+import { OrbitControls, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 
@@ -43,7 +43,7 @@ const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg"
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
 // =========================================================
-// RENDERIZADOR 3D OTIMIZADO: POSICIONAMENTO E EIXOS (CORRIGIDO)
+// RENDERIZADOR 3D: EM PÉ E SOBRE O PLANO Y=0 (CORRIGIDO)
 // =========================================================
 const StlModel = ({ url, cor }) => {
   const originalGeom = useLoader(STLLoader, url);
@@ -51,19 +51,15 @@ const StlModel = ({ url, cor }) => {
   const geom = useMemo(() => {
     const clonedGeom = originalGeom.clone();
     
-    // 1. ORIENTAÇÃO (Em pé): Removido o rotateX(-Math.PI / 2) que deitava a peça.
-    // Agora ela fica posicionada na vertical, ideal para leitura frontal.
-    // (Se quiser inclinar levemente para trás como uma placa de mesa, use: clonedGeom.rotateX(-0.15);)
-    
-    // 2. POSICIONAMENTO ABSOLUTO (Sobre o plano Y=0):
+    // 1. Mantém a peça EM PÉ (sem o rotateX que deitava no chão)
     clonedGeom.computeBoundingBox();
     const box = clonedGeom.boundingBox;
     
     const centerX = (box.max.x + box.min.x) / 2;
     const centerZ = (box.max.z + box.min.z) / 2;
     
-    // Deslocamos o centro horizontal para (0,0) e empurramos o ponto mais baixo da peça (-box.min.y) 
-    // para exatamente Y = 0. Isso garante que ela nunca atravesse o chão!
+    // 2. POSICIONAMENTO ABSOLUTO: Centraliza X/Z e empurramos a base (min.y) exatamente para Y = 0.
+    // Assim, a peça fica 100% sobre o plano da grade, sem atravessar o chão!
     clonedGeom.translate(-centerX, -box.min.y, -centerZ);
     
     clonedGeom.computeBoundingBox();    
@@ -219,7 +215,6 @@ const getTheme = (idOrHex) => {
 
   if (predefined[idOrHex]) return { corPrincipal: idOrHex, ...predefined[idOrHex] };
 
-  // Fallback para cores personalizadas livres (usa a logo principal como padrão)
   return {
     corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`,
     btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
@@ -229,7 +224,7 @@ const getTheme = (idOrHex) => {
 };
 
 // =========================================================
-// TESTADOR DE PALETA DE CORES: POPOVER DINÂMICO
+// TESTADOR DE CORES: 7 EM UMA LINHA E Z-INDEX SEGURO
 // =========================================================
 const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
   const [menuAberto, setMenuAberto] = useState(false);
@@ -244,6 +239,15 @@ const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
     { nome: 'Amarelo', hex: '#ca8a04' },
     { nome: 'Verde', hex: '#1a8441' }
   ];
+
+  // Fecha o menu de cores automaticamente se o usuário rolar a tela, evitando sobreposição com a aba de navegação
+  useEffect(() => {
+    const handleScroll = () => {
+      if (menuAberto) setMenuAberto(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [menuAberto]);
 
   const handleSwitch = () => {
     setCorPrincipal(isRoxo ? '#0e52c2' : '#511576');
@@ -261,7 +265,7 @@ const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
 
   return (
     <div 
-      className="relative flex items-center space-x-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full border shadow-sm flex-shrink-0 z-50 transition-colors duration-500" 
+      className="relative flex items-center space-x-2 bg-white/95 backdrop-blur px-3 py-1.5 rounded-full border shadow-sm flex-shrink-0 z-10 transition-colors duration-500" 
       role="region" 
       aria-label="Testador rápido de paleta de cores"
       style={{ borderColor: `${corPrincipal}40` }}
@@ -273,7 +277,7 @@ const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
         aria-checked={isRoxo}
         aria-label="Alternar tema entre Azul Padrão e Roxo"
         title="Alternar entre Azul Padrão e Roxo"
-        className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 cursor-pointer"
+        className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 cursor-pointer flex-shrink-0"
         style={{ backgroundColor: isRoxo ? '#511576' : '#0e52c2' }}
       >
         <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
@@ -295,17 +299,18 @@ const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
 
         {menuAberto && (
           <div 
-            className="absolute top-full right-0 mt-3 p-3 bg-white rounded-xl shadow-xl border-2 flex flex-col gap-3 w-56 animate-fadeIn transition-colors duration-500"
+            className="absolute top-full right-0 mt-2 p-3 bg-white rounded-xl shadow-xl border-2 flex flex-col gap-3 w-max z-50 animate-fadeIn transition-colors duration-500"
             style={{ borderColor: corPrincipal }}
           >
             <span className="text-[11px] font-bold text-slate-500 uppercase px-1">Cores Predefinidas</span>
-            <div className="flex flex-wrap gap-2 px-1">
+            {/* 7 Cores em uma única fileira (flex-nowrap) */}
+            <div className="flex flex-nowrap items-center gap-2 px-1">
               {CORES_PREDEFINIDAS.map(c => (
                 <button
                   key={c.nome}
                   type="button"
                   onClick={() => handleColorSelect(c.hex)}
-                  className={`w-7 h-7 rounded-full shadow-sm hover:scale-110 transition-transform ${corPrincipal === c.hex ? 'ring-2 ring-offset-2 ring-slate-400' : ''}`}
+                  className={`w-7 h-7 rounded-full shadow-sm hover:scale-110 transition-transform flex-shrink-0 ${corPrincipal === c.hex ? 'ring-2 ring-offset-2 ring-slate-400' : ''}`}
                   style={{ backgroundColor: c.hex }}
                   title={c.nome}
                   aria-label={`Mudar para cor ${c.nome}`}
@@ -796,38 +801,40 @@ export default function App() {
     recognition.start();
   };
 
-const handleSpeak = () => {
-  if (!translatedText) return;
-  
-  // Interrompe qualquer áudio anterior que ainda esteja tocando
-  window.speechSynthesis.cancel();
+  // =========================================================
+  // MOTOR DE VOZ OTIMIZADO (CADÊNCIA E VOZES NEURAIS)
+  // =========================================================
+  const handleSpeak = () => {
+    if (!translatedText) return;
+    
+    window.speechSynthesis.cancel();
 
-  const utterance = new SpeechSynthesisUtterance(translatedText);
-  utterance.lang = 'pt-BR';
-  
-  // Velocidade ligeiramente reduzida (0.9 a 0.95) remove o tom apressado e robótico
-  utterance.rate = 0.92;
-  utterance.pitch = 1.0;
+    const utterance = new SpeechSynthesisUtterance(translatedText);
+    utterance.lang = 'pt-BR';
+    
+    // Diminui levemente a velocidade para uma dicção mais humana e suave
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
 
-  // Filtro inteligente para capturar vozes neurais e naturais instaladas no dispositivo/navegador
-  const vozes = window.speechSynthesis.getVoices();
-  const vozNatural = vozes.find(v => 
-    v.lang.includes('pt') && (
-      v.name.includes('Natural') || 
-      v.name.includes('Online') || 
-      v.name.includes('Google') ||
-      v.name.includes('Luciana') ||
-      v.name.includes('Francisca') ||
-      v.name.includes('Antonio')
-    )
-  ) || vozes.find(v => v.lang.includes('pt'));
+    // Filtra vozes neurais e de alta qualidade no navegador (Edge, Chrome, Android, Mac)
+    const vozes = window.speechSynthesis.getVoices();
+    const vozNatural = vozes.find(v => 
+      v.lang.includes('pt') && (
+        v.name.includes('Natural') || 
+        v.name.includes('Online') || 
+        v.name.includes('Google') ||
+        v.name.includes('Luciana') ||
+        v.name.includes('Francisca') ||
+        v.name.includes('Antonio')
+      )
+    ) || vozes.find(v => v.lang.includes('pt'));
 
-  if (vozNatural) {
-    utterance.voice = vozNatural;
-  }
+    if (vozNatural) {
+      utterance.voice = vozNatural;
+    }
 
-  window.speechSynthesis.speak(utterance);
-};
+    window.speechSynthesis.speak(utterance);
+  };
   
   const celasFisicas = cells.filter(c => !c.isNewline);
 
@@ -858,9 +865,10 @@ const handleSpeak = () => {
         </div>
       </header>
 
+      {/* Navegação Principal com Z-Index superior (z-30) para evitar sobreposição */}
       <nav 
         aria-label="Navegação Principal do Projeto" 
-        className="shadow-md sticky top-0 z-20 transition-colors duration-500"
+        className="shadow-md sticky top-0 z-30 transition-colors duration-500"
         style={{ backgroundColor: theme.abaNormal }}
       >
         <div role="tablist" className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
@@ -897,14 +905,14 @@ const handleSpeak = () => {
         {activeTab === 'gerador' && (
           <div id="painel-gerador" role="tabpanel" aria-label="Gerador Braille" className="space-y-6 fade-in">
             
-            {/* INFORMAÇÕES */}
+            {/* INFORMAÇÕES COM CORES REPOSICIONADAS NO TOPO DIREITO */}
             <div 
               className="p-6 rounded-xl shadow-sm transition-colors duration-500"
               style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <div className="text-slate-600 space-y-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <p className="flex-1 leading-relaxed">
+                  <p className="flex-1 leading-relaxed pr-2">
                     Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
                     <a 
                       href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
@@ -917,7 +925,9 @@ const handleSpeak = () => {
                     </a>.
                   </p>
 
-                  <ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} />
+                  <div className="flex-shrink-0 self-start">
+                    <ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} />
+                  </div>
                 </div>
 
                 <div 
@@ -1030,7 +1040,7 @@ const handleSpeak = () => {
               </form>
             </div>
 
-            {/* VISUALIZADOR 3D */}
+            {/* VISUALIZADOR 3D COM SINTAXE DE TAGS PERFEITA */}
             {stlUrl && (
               <div 
                 role="region" 
@@ -1079,13 +1089,10 @@ const handleSpeak = () => {
                       <Environment preset="city" />
                       <ambientLight intensity={0.5} />
                       <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
-                      
                       <Bounds fit clip observe margin={1.2}>
-                          <StlModel url={stlUrl} cor={theme.corPrincipal} />
-                        </Center>
+                        <StlModel url={stlUrl} cor={theme.corPrincipal} />
                       </Bounds>
                     </Suspense>
-                    
                     <axesHelper args={[30]} />
                     <gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
                     <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
@@ -1212,7 +1219,6 @@ const handleSpeak = () => {
                         </div>
                       </div>
 
-                      {/* Exibição visual do texto traduzido para o português */}
                       <div 
                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-base sm:text-lg min-h-[3.5rem] font-sans whitespace-pre-wrap transition-colors duration-500 flex-grow"
                         style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
@@ -1396,13 +1402,13 @@ const handleSpeak = () => {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
+              Ou envie um e-mail para:: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* ABA: INSTRUÇÕES (Placeholder) */}
+        {/* ABA: INSTRUÇÕES */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
           <div 
@@ -1416,7 +1422,7 @@ const handleSpeak = () => {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: SAIBA MAIS (Placeholder) */}
+        {/* ABA: SAIBA MAIS */}
         {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
           <div 
