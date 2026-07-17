@@ -7,10 +7,16 @@ import { OrbitControls, Center, Bounds, Environment } from '@react-three/drei';
 import { STLLoader } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 
-// Importações de Imagens Principais e Logos Dinâmicas
+// Importações de Imagens Principais e Logos Dinâmicas por Cor
 import iconeRotacao from './assets/icone-rotacao.png';
 import logoPrincipal from './assets/Quimica ao Alcanse das maos logo 1 transparente.png';
+import logoAmarelo from './assets/Quimica ao Alcanse das maos logo transparente AMARELO.png';
+import logoAzul from './assets/Quimica ao Alcanse das maos logo transparente AZUL.png';
+import logoLaranja from './assets/Quimica ao Alcanse das maos logo transparente LARANJA.png';
+import logoRosa from './assets/Quimica ao Alcanse das maos logo transparente ROSA.png';
 import logoRoxo from './assets/Quimica ao Alcanse das maos logo transparente ROXO.png';
+import logoVerde from './assets/Quimica ao Alcanse das maos logo transparente VERDE.png';
+import logoVermelho from './assets/Quimica ao Alcanse das maos logo transparente VERMELHO.png';
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
 // =========================================================
@@ -43,7 +49,7 @@ const StlModel = ({ url, cor }) => {
   const originalGeom = useLoader(STLLoader, url);
   
   const geom = useMemo(() => {
-    //  Geometria foi cloanda para não modificar o cache do useLoader. Isso evita o bug de dupla rotação ao trocar de abas.
+    // Geometria foi clonada para não modificar o cache do useLoader. Isso evita o bug de dupla rotação ao trocar de abas.
     const clonedGeom = originalGeom.clone();
     
     // Deitamos a peça em relação ao plano X nativamente (Transforma o eixo Z do JSCAD no eixo Y do Three.js)
@@ -153,7 +159,7 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
 );
 
 // =========================================================
-// DICIONÁRIO DE TEMAS (LÓGICA DE CORES FIXAS)
+// DICIONÁRIO DE TEMAS E LOGOS POR COR
 // =========================================================
 const getTheme = (idOrHex) => {
   const predefined = {
@@ -161,33 +167,56 @@ const getTheme = (idOrHex) => {
       cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8',
       btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
       textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logoRoxa: false, textoSubCaixa: '#1e293b'
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logo: logoAzul, textoSubCaixa: '#1e293b'
     },
     '#1a8441': { // TEMA EM COR VERDE
       cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194',
       btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
       textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logoRoxa: false, textoSubCaixa: '#1e293b'
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logo: logoVerde, textoSubCaixa: '#1e293b'
     },
     '#511576': { // TEMA EM COR ROXO
       cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da',
       btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd',
       textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658',
-      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logoRoxa: true, textoSubCaixa: '#000000'
+      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logo: logoRoxo, textoSubCaixa: '#000000'
+    },
+    '#db2777': { // TEMA EM COR ROSA
+      cabecalho: '#ffffff', abaNormal: '#db2777', abaAtiva: '#be185d', fundoPrincipal: '#f4a6c8',
+      btnVisualizar: '#db2777', btnBaixar: '#059669', fundoCaixa: '#fdf2f8', fundoSubCaixa: '#fce7f3',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#db2777', logo: logoRosa, textoSubCaixa: '#1e293b'
+    },
+    '#dc2626': { // TEMA EM COR VERMELHO
+      cabecalho: '#ffffff', abaNormal: '#dc2626', abaAtiva: '#b91c1c', fundoPrincipal: '#f19e9e',
+      btnVisualizar: '#dc2626', btnBaixar: '#059669', fundoCaixa: '#fef2f2', fundoSubCaixa: '#fee2e2',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#dc2626', logo: logoVermelho, textoSubCaixa: '#1e293b'
+    },
+    '#ea580c': { // TEMA EM COR LARANJA
+      cabecalho: '#ffffff', abaNormal: '#ea580c', abaAtiva: '#c2410c', fundoPrincipal: '#f8bd9d',
+      btnVisualizar: '#ea580c', btnBaixar: '#059669', fundoCaixa: '#fff7ed', fundoSubCaixa: '#ffedd5',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ea580c', logo: logoLaranja, textoSubCaixa: '#1e293b'
+    },
+    '#ca8a04': { // TEMA EM COR AMARELO
+      cabecalho: '#ffffff', abaNormal: '#ca8a04', abaAtiva: '#a16207', fundoPrincipal: '#f7dfa4',
+      btnVisualizar: '#ca8a04', btnBaixar: '#059669', fundoCaixa: '#fefce8', fundoSubCaixa: '#fef9c3',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ca8a04', logo: logoAmarelo, textoSubCaixa: '#1e293b'
     }
   };
 
   if (predefined[idOrHex]) return { corPrincipal: idOrHex, ...predefined[idOrHex] };
 
-  // Fallback para as outras cores dinâmicas (Rosa, Vermelho, Laranja, Amarelo, etc)
+  // Fallback para cores personalizadas livres (usa a logo principal como padrão)
   return {
     corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`,
     btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
     textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-    textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logoRoxa: false, textoSubCaixa: '#1e293b'
+    textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logo: logoPrincipal, textoSubCaixa: '#1e293b'
   };
 };
-
 
 // =========================================================
 // TESTADOR DE PALETA DE CORES: POPOVER DINÂMICO
@@ -778,7 +807,7 @@ export default function App() {
       >
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
           <img 
-            src={theme.logoRoxa ? logoRoxo : logoPrincipal} 
+            src={theme.logo || logoPrincipal} 
             alt="Logo Química ao Alcance das Mãos" 
             className="w-16 h-16 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain drop-shadow-sm flex-shrink-0 transition-all duration-300"
           />
@@ -1043,7 +1072,7 @@ export default function App() {
                 Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" />
               </h2>
               
-              {cells.length > 0 ? (
+              {cells.length > 0 && (
                 <div>
                   <div 
                     className="grid grid-cols-4 sm:flex sm:flex-wrap items-start gap-y-4 gap-x-1 sm:gap-x-0 p-4 sm:p-6 rounded-lg border border-slate-200 min-h-[180px] transition-colors duration-500"
@@ -1116,39 +1145,52 @@ export default function App() {
                       />
                       
                       <div className="flex items-center justify-between mb-2">
-  <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-    <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: theme.corPrincipal }} />
-    Tradução em Português
-  </span>
-  <div className="flex gap-2">
-    <button
-      onClick={() => {
-        navigator.clipboard.writeText(translatedText);
-        alert("Tradução copiada!");
-      }}
-      aria-label="Copiar texto traduzido"
-      title="Copiar texto traduzido"
-      className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
-      style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
-    >
-      <Copy className="w-3 h-3 mr-1" />
-      Copiar Tradução
-    </button>
-    <button
-      onClick={handleSpeak}
-      disabled={!translatedText}
-      aria-label="Ouvir tradução em voz alta em português"
-      title="Ouvir tradução em voz alta"
-      className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
-    >
-      <Volume2 className="w-3 h-3 mr-1" />
-      Ouvir
-    </button>
-  </div>
-</div>
-                      );
-                      }
+                        <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
+                          <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: theme.corPrincipal }} />
+                          Tradução em Português
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(translatedText);
+                              alert("Tradução copiada!");
+                            }}
+                            aria-label="Copiar texto traduzido"
+                            title="Copiar texto traduzido"
+                            className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors"
+                            style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
+                          >
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copiar Tradução
+                          </button>
+                          <button
+                            onClick={handleSpeak}
+                            disabled={!translatedText}
+                            aria-label="Ouvir tradução em voz alta em português"
+                            title="Ouvir tradução em voz alta"
+                            className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
+                          >
+                            <Volume2 className="w-3 h-3 mr-1" />
+                            Ouvir
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Exibição visual do texto traduzido para o português */}
+                      <div 
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base sm:text-lg min-h-[3.5rem] font-sans whitespace-pre-wrap transition-colors duration-500 flex-grow"
+                        style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
+                      >
+                        {translatedText || <span className="text-slate-400 italic text-sm">A tradução aparecerá aqui...</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ======================================================== */}
         {/* ABA: SOBRE O PROJETO */}
