@@ -1402,7 +1402,7 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Ou envie um e-mail para:: <strong>andrevinniciosgaito@gmail.com</strong>
+              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
