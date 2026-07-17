@@ -1483,9 +1483,9 @@ export default function App() {
               <div className="p-5 rounded-lg border-l-4 space-y-4 leading-relaxed text-sm sm:text-base text-slate-600 shadow-xs" style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}>
                 <div className="space-y-1">
                   <h3 className="font-extrabold text-red-700 text-base uppercase tracking-wider flex items-center gap-1.5">
-                    ⚠️ REGRA DE OURO: Para impressão de peças em Braille, SEMPRE IMPRIMA NA VERTICAL (Em Pé)
+                    REGRA DE OURO: Para impressão de peças em Braille, SEMPRE IMPRIMA NA VERTICAL (Em Pé)
                   </h3>
-                  <p>Ao exportar o arquivo <strong>".stl"</strong> e jogá-lo no fatiador, certifique-se de que a placa de texto está posicionada <strong>na vertical ("em pé") sobre a mesa</strong>, orientada ao longo do eixo Z.</p>
+                  <p>Ao exportar o arquivo 3D <strong>".stl"</strong> e jogá-lo no software para imprimissão (fatiador), certifique-se de que a placa de texto está posicionada <strong>na vertical ("em pé") sobre a mesa</strong>, orientada ao longo do eixo Z.</p>
                 </div>
                 
                 <div className="space-y-2 text-xs sm:text-sm bg-white/60 p-3 rounded border border-slate-200/60">
