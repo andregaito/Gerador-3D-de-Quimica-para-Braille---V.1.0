@@ -1147,7 +1147,8 @@ export default function App() {
     </button>
   </div>
 </div>
-                      )}
+                      );
+                      }
 
         {/* ======================================================== */}
         {/* ABA: SOBRE O PROJETO */}
