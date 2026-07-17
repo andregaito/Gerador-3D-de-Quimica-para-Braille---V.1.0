@@ -151,23 +151,23 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
 // =========================================================
 const getTheme = (idOrHex) => {
   const predefined = {
-    '#0e52c2': { // AZUL
+    '#0e52c2': { // TEMA EM COR AZUL
       cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8',
       btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
       textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
       textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logoRoxa: false, textoSubCaixa: '#1e293b'
     },
-    '#1a8441': { // VERDE
+    '#1a8441': { // TEMA EM COR VERDE
       cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194',
       btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
       textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
       textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logoRoxa: false, textoSubCaixa: '#1e293b'
     },
-    '#511576': { // ROXO
+    '#511576': { // TEMA EM COR ROXO
       cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da',
-      btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#461870',
-      textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#87a2da', borderBtnVis: '#87a2da',
-      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#511576', logoRoxa: true, textoSubCaixa: '#ffffff'
+      btnVisualizar: '#a0f658', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd',
+      textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658',
+      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logoRoxa: true, textoSubCaixa: '#000000'
     }
   };
 
