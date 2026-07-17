@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, useRef } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
@@ -43,8 +43,6 @@ const StlModel = ({ url, cor }) => {
   const geom = useLoader(STLLoader, url);
   
   useEffect(() => {
-    // Rotaciona a geometria nativamente na memória para trocar o eixo Z pelo Y.
-    // Isso garante que o cálculo dos limites "entenda" que a placa está deitada.
     geom.rotateX(-Math.PI / 2);
     geom.computeBoundingBox();
     geom.computeVertexNormals();
@@ -114,7 +112,7 @@ const Dot = ({ active }) => (
 const BrailleCell = ({ dots, label, description }) => {
   return (
     <div className="flex flex-col items-center sm:mx-1 sm:mb-4" role="group" aria-label={`Cela Braille: ${description}`}>
-      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-white rounded-md border border-slate-300 shadow-sm" aria-hidden="true">
+      <div className="grid grid-cols-2 gap-1 sm:gap-1.5 p-1.5 sm:p-2 bg-white rounded-md shadow-sm" aria-hidden="true">
         <Dot active={dots.includes(1)} /> <Dot active={dots.includes(4)} />
         <Dot active={dots.includes(2)} /> <Dot active={dots.includes(5)} />
         <Dot active={dots.includes(3)} /> <Dot active={dots.includes(6)} />
@@ -149,40 +147,70 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
 );
 
 // =========================================================
+// DICIONÁRIO DE TEMAS (LÓGICA DE CORES FIXAS)
+// =========================================================
+const getTheme = (idOrHex) => {
+  const predefined = {
+    '#0e52c2': { // AZUL
+      cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8',
+      btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logoRoxa: false, textoSubCaixa: '#1e293b'
+    },
+    '#1a8441': { // VERDE
+      cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194',
+      btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
+      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logoRoxa: false, textoSubCaixa: '#1e293b'
+    },
+    '#511576': { // ROXO
+      cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da',
+      btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#461870',
+      textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#87a2da', borderBtnVis: '#87a2da',
+      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#511576', logoRoxa: true, textoSubCaixa: '#ffffff'
+    }
+  };
+
+  if (predefined[idOrHex]) return { corPrincipal: idOrHex, ...predefined[idOrHex] };
+
+  // Fallback para as outras cores dinâmicas (Rosa, Vermelho, Laranja, Amarelo, etc)
+  return {
+    corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`,
+    btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
+    textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
+    textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logoRoxa: false, textoSubCaixa: '#1e293b'
+  };
+};
+
+
+// =========================================================
 // TESTADOR DE PALETA DE CORES: POPOVER DINÂMICO
 // =========================================================
-const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) => {
+const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
   const [menuAberto, setMenuAberto] = useState(false);
+  const isRoxo = corPrincipal === '#511576';
 
   const CORES_PREDEFINIDAS = [
     { nome: 'Azul', hex: '#0e52c2' },
-    { nome: 'Roxo', hex: '#7e22ce' },
+    { nome: 'Roxo', hex: '#511576' },
     { nome: 'Rosa', hex: '#db2777' },
     { nome: 'Vermelho', hex: '#dc2626' },
     { nome: 'Laranja', hex: '#ea580c' },
     { nome: 'Amarelo', hex: '#ca8a04' },
-    { nome: 'Verde', hex: '#16a34a' }
+    { nome: 'Verde', hex: '#1a8441' }
   ];
 
   const handleSwitch = () => {
-    if (!modoRoxo) {
-      setModoRoxo(true);
-      setCorPrincipal('#7e22ce');
-    } else {
-      setModoRoxo(false);
-      setCorPrincipal('#0e52c2');
-    }
+    setCorPrincipal(isRoxo ? '#0e52c2' : '#511576');
     setMenuAberto(false);
   };
 
   const handleColorSelect = (hex) => {
-    setModoRoxo(hex === '#7e22ce');
     setCorPrincipal(hex);
     setMenuAberto(false);
   };
 
   const handleCustomColor = (e) => {
-    setModoRoxo(false);
     setCorPrincipal(e.target.value);
   };
 
@@ -193,21 +221,19 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
       aria-label="Testador rápido de paleta de cores"
       style={{ borderColor: `${corPrincipal}40` }}
     >
-      {/* Botão Switch Clássico */}
       <button
         type="button"
         onClick={handleSwitch}
         role="switch"
-        aria-checked={modoRoxo}
+        aria-checked={isRoxo}
         aria-label="Alternar tema entre Azul Padrão e Roxo"
         title="Alternar entre Azul Padrão e Roxo"
         className="w-11 h-6 rounded-full p-0.5 transition-colors duration-300 relative focus:outline-none focus:ring-2 focus:ring-offset-1 cursor-pointer"
-        style={{ backgroundColor: modoRoxo ? '#7e22ce' : '#0e52c2' }}
+        style={{ backgroundColor: isRoxo ? '#511576' : '#0e52c2' }}
       >
-        <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${modoRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
+        <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isRoxo ? 'translate-x-5' : 'translate-x-0'}`} />
       </button>
 
-      {/* Ícone de Paleta que abre o Popover */}
       <div className="relative">
         <button 
           onClick={() => setMenuAberto(!menuAberto)}
@@ -218,11 +244,10 @@ const ColorTester = ({ corPrincipal, setCorPrincipal, modoRoxo, setModoRoxo }) =
         >
           <Palette 
             className="w-5 h-5 transition-colors" 
-            style={{ color: !modoRoxo && corPrincipal !== '#0e52c2' ? corPrincipal : undefined }} 
+            style={{ color: (!isRoxo && corPrincipal !== '#0e52c2') ? corPrincipal : undefined }} 
           />
         </button>
 
-        {/* Menu Popover com Cores */}
         {menuAberto && (
           <div 
             className="absolute top-full right-0 mt-3 p-3 bg-white rounded-xl shadow-xl border-2 flex flex-col gap-3 w-56 animate-fadeIn transition-colors duration-500"
@@ -426,7 +451,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('gerador');
 
   const [corPrincipal, setCorPrincipal] = useState('#0e52c2'); 
-  const [modoRoxo, setModoRoxo] = useState(false);
+  const theme = getTheme(corPrincipal);
 
   const [input, setInput] = useState('Fe(OH)2');
   const [cells, setCells] = useState([]);
@@ -738,14 +763,16 @@ export default function App() {
   return (
     <div 
       className="flex flex-col min-h-screen font-sans text-slate-800 transition-colors duration-500"
-      style={{ backgroundColor: `${corPrincipal}1A` }} // Tonalidade colorida no fundo geral, de acordo com as fotos de referência
+      style={{ backgroundColor: theme.fundoPrincipal }}
     >
       
-      {/* HEADER INTEGRADO AO FUNDO COLORIDO */}
-      <header className="pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 z-10 relative">
+      <header 
+        className="pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 z-10 relative transition-colors duration-500 shadow-sm"
+        style={{ backgroundColor: theme.cabecalho }}
+      >
         <div className="max-w-5xl mx-auto flex flex-row items-center justify-start gap-3 sm:gap-6">
           <img 
-            src={modoRoxo ? logoRoxo : logoPrincipal} 
+            src={theme.logoRoxa ? logoRoxo : logoPrincipal} 
             alt="Logo Química ao Alcance das Mãos" 
             className="w-16 h-16 sm:w-28 sm:h-28 md:w-36 md:h-36 object-contain drop-shadow-sm flex-shrink-0 transition-all duration-300"
           />
@@ -760,11 +787,10 @@ export default function App() {
         </div>
       </header>
 
-      {/* NAVBAR */}
       <nav 
         aria-label="Navegação Principal do Projeto" 
-        className="shadow-md sticky top-0 z-20 transition-colors duration-300"
-        style={{ backgroundColor: corPrincipal }}
+        className="shadow-md sticky top-0 z-20 transition-colors duration-500"
+        style={{ backgroundColor: theme.abaNormal }}
       >
         <div role="tablist" className="max-w-5xl mx-auto flex flex-nowrap overflow-x-auto justify-start sm:justify-start w-full px-2 sm:px-0">
           {[
@@ -782,12 +808,12 @@ export default function App() {
               aria-selected={activeTab === tab.id}
               aria-controls={`painel-${tab.id}`}
               onClick={() => setActiveTab(tab.id)}
-              className={`whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-all duration-200 ${
-                activeTab === tab.id 
-                  ? 'text-white border-b-4 border-white' 
-                  : 'text-white/80 hover:bg-black/10 hover:text-white border-b-4 border-transparent'
-              }`}
-              style={{ backgroundColor: activeTab === tab.id ? 'rgba(0, 0, 0, 0.25)' : 'transparent' }}
+              className="whitespace-nowrap flex-1 sm:flex-none px-3 sm:px-5 py-3 sm:py-4 text-[12px] sm:text-[14px] font-semibold transition-all duration-300 border-b-4"
+              style={{ 
+                backgroundColor: activeTab === tab.id ? theme.abaAtiva : 'transparent',
+                color: activeTab === tab.id ? theme.textoAba : theme.textoAbaNormal,
+                borderColor: activeTab === tab.id ? theme.textoAba : 'transparent'
+              }}
             >
               {tab.label}
             </button>
@@ -797,16 +823,13 @@ export default function App() {
 
       <main className="flex-grow p-4 sm:p-6 w-full max-w-5xl mx-auto">
         
-        {/* ======================================================== */}
-        {/* ABA: GERADOR BRAILLE */}
-        {/* ======================================================== */}
         {activeTab === 'gerador' && (
           <div id="painel-gerador" role="tabpanel" aria-label="Gerador Braille" className="space-y-6 fade-in">
             
-            {/* INFORMAÇÕES - BORDAS SÓLIDAS DINÂMICAS */}
+            {/* INFORMAÇÕES */}
             <div 
-              className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500"
-              style={{ border: `2px solid ${corPrincipal}` }}
+              className="p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <div className="text-slate-600 space-y-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -817,23 +840,18 @@ export default function App() {
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="font-semibold hover:underline transition-colors"
-                      style={{ color: corPrincipal }}
+                      style={{ color: theme.corPrincipal }}
                     >
                       Grafia Química Braille para Uso no Brasil (3ª edição, 2017)
                     </a>.
                   </p>
 
-                  <ColorTester 
-                    corPrincipal={corPrincipal} 
-                    setCorPrincipal={setCorPrincipal} 
-                    modoRoxo={modoRoxo} 
-                    setModoRoxo={setModoRoxo} 
-                  />
+                  <ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} />
                 </div>
 
                 <div 
-                  className="border-l-4 pl-3 bg-slate-50 py-2 pr-3 rounded-r text-sm transition-colors"
-                  style={{ borderColor: corPrincipal }}
+                  className="border-l-4 pl-3 py-2 pr-3 rounded-r text-sm transition-colors"
+                  style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}
                 >
                   <p>
                     Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
@@ -853,8 +871,8 @@ export default function App() {
 
             {/* FORMULÁRIO */}
             <div 
-              className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500"
-              style={{ border: `2px solid ${corPrincipal}` }}
+              className="p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <form onSubmit={handleGenerate} className="flex flex-col gap-4">
                 
@@ -867,7 +885,8 @@ export default function App() {
                       id="ionInput" 
                       value={input}
                       onChange={(e) => { setInput(e.target.value); parseBraille(e.target.value); }}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 outline-none text-lg font-mono resize-y min-h-[80px] pr-12"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 outline-none text-lg font-mono resize-y min-h-[80px] pr-12 transition-colors duration-500"
+                      style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                       rows={2}
                       placeholder="Ex: Fe(OH)2 ou qualquer texto multilinhas..."
                     />
@@ -879,7 +898,7 @@ export default function App() {
                       className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
                         isListening 
                           ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400' 
-                          : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                          : 'bg-white/50 text-slate-500 hover:text-slate-800 backdrop-blur'
                       }`}
                     >
                       {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -889,10 +908,14 @@ export default function App() {
                   <div className="flex items-end">
                     <button
                       type="submit" disabled={isGenerating}
-                      className={`w-full sm:w-auto px-6 py-3 text-white font-medium rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2 h-[52px] ${
+                      className={`w-full sm:w-auto px-6 py-3 font-medium rounded-lg shadow-sm transition-all flex items-center justify-center space-x-2 h-[52px] ${
                         isGenerating ? 'bg-slate-400 cursor-not-allowed' : 'hover:opacity-90'
                       }`}
-                      style={{ backgroundColor: isGenerating ? undefined : corPrincipal }}
+                      style={!isGenerating ? { 
+                        backgroundColor: theme.btnVisualizar, 
+                        color: theme.textoBtnVis,
+                        border: `2px solid ${theme.borderBtnVis}` 
+                      } : {}}
                     >
                       <Settings className={`w-5 h-5 inline-block ${isGenerating ? 'animate-spin' : ''}`} />
                       <span>{isGenerating ? 'Processando Malha...' : 'Visualizar STL'}</span>
@@ -911,8 +934,8 @@ export default function App() {
                     onClick={() => setShowAdvanced(!showAdvanced)} 
                     aria-expanded={showAdvanced}
                     aria-controls="painel-avancado"
-                    className="flex items-center text-sm font-semibold text-slate-600 hover:opacity-80 transition-opacity"
-                    style={{ color: showAdvanced ? corPrincipal : undefined }}
+                    className="flex items-center text-sm font-semibold hover:opacity-80 transition-opacity"
+                    style={{ color: theme.corPrincipal }}
                   >
                     <Sliders className="w-4 h-4 mr-2" />
                     Opções Avançadas de Impressão 3D
@@ -920,15 +943,15 @@ export default function App() {
                   </button>
                   
                   {showAdvanced && (
-                    <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50 p-5 rounded-lg border border-slate-200">
-                      <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={corPrincipal} />
-                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={corPrincipal} />
+                    <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50/50 p-5 rounded-lg border border-slate-200">
+                      <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={theme.corPrincipal} />
                     </div>
                   )}
                 </div>
@@ -941,8 +964,8 @@ export default function App() {
               <div 
                 role="region" 
                 aria-label="Área de pré-visualização do modelo 3D em formato STL"
-                className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col"
-                style={{ border: `2px solid ${corPrincipal}` }}
+                className="p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col"
+                style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
               >
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="text-lg font-bold text-slate-800 flex items-center">
@@ -952,8 +975,12 @@ export default function App() {
                   <button
                     onClick={handleDownload}
                     aria-label="Baixar arquivo 3D formato STL pronto para impressão"
-                    className="px-4 py-2 text-white font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2 hover:opacity-90"
-                    style={{ backgroundColor: corPrincipal }}
+                    className="px-4 py-2 font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2 hover:opacity-90"
+                    style={{ 
+                      backgroundColor: theme.btnBaixar, 
+                      color: theme.textoBtnBaixar, 
+                      border: `2px solid ${theme.borderBtnBaixar}` 
+                    }}
                   >
                     <Download className="w-4 h-4" />
                     <span className="hidden sm:inline">Baixar Arquivo STL</span>
@@ -971,7 +998,7 @@ export default function App() {
                     aria-label={autoRotate ? "Desligar rotação automática do modelo 3D" : "Ligar rotação automática do modelo 3D"}
                     title={autoRotate ? "Desligar Rotação Automática" : "Ligar Rotação Automática"}
                     className="absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all"
-                    style={autoRotate ? { backgroundColor: corPrincipal, border: `2px solid ${corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}
+                    style={autoRotate ? { backgroundColor: theme.corPrincipal, border: `2px solid ${theme.corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}
                   >
                     <img src={iconeRotacao} alt="" className="w-12 h-12 rounded-full object-cover" />
                   </button>
@@ -984,7 +1011,7 @@ export default function App() {
                       
                       <Bounds fit clip observe margin={1.2}>
                         <Center bottom position={[0, 0, 0]}>
-                          <StlModel url={stlUrl} cor={corPrincipal} />
+                          <StlModel url={stlUrl} cor={theme.corPrincipal} />
                         </Center>
                       </Bounds>
                     </Suspense>
@@ -1003,8 +1030,8 @@ export default function App() {
 
             {/* TRADUÇÃO VISUAL 2D E UNICODE */}
             <div 
-              className="bg-white p-4 sm:p-6 rounded-xl shadow-sm transition-colors duration-500"
-              style={{ border: `2px solid ${corPrincipal}` }}
+              className="p-4 sm:p-6 rounded-xl shadow-sm transition-colors duration-500"
+              style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center">
                 Visualização das Celas Braille (Leitura Tátil 2D) <ArrowRight className="w-4 h-4 ml-2 text-slate-400" />
@@ -1012,23 +1039,29 @@ export default function App() {
               
               {cells.length > 0 ? (
                 <div>
-                  <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-start gap-y-4 gap-x-1 sm:gap-x-0 bg-slate-100 p-4 sm:p-6 rounded-lg border border-slate-200 min-h-[180px]">
+                  <div 
+                    className="grid grid-cols-4 sm:flex sm:flex-wrap items-start gap-y-4 gap-x-1 sm:gap-x-0 p-4 sm:p-6 rounded-lg border border-slate-200 min-h-[180px] transition-colors duration-500"
+                    style={{ backgroundColor: theme.fundoSubCaixa }}
+                  >
                     {cells.map((cell, index) => {
                       if (cell.isNewline) return <div key={`nl-${index}`} className="col-span-4 sm:w-full h-2 sm:h-4"></div>;
                       return <BrailleCell key={index} dots={cell.dots} label={cell.label} description={cell.description} />;
                     })}
                   </div>
                   
-                  <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 border-t border-slate-100 pt-4 px-1">
+                  <div className="mt-4 flex justify-between items-center text-xs sm:text-sm text-slate-500 border-t border-slate-200 pt-4 px-1">
                     <p>Largura estimada na impressão: <span className="font-bold text-slate-700">~{(celasFisicas.length * 6.5).toFixed(1)} mm</span></p>
                     <p>Total: <span className="font-bold text-slate-700">{celasFisicas.length}</span> celas</p>
                   </div>
 
                   <div className="mt-6 flex flex-col md:flex-row gap-4">
-                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col justify-between">
+                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50/50 flex flex-col justify-between transition-colors">
                       <div>
                         <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
-                        <div className="text-4xl text-slate-800 tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap">
+                        <div 
+                          className="text-4xl tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap p-2 rounded-md transition-colors duration-500"
+                          style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
+                        >
                           {brailleUnicodeText}
                         </div>
                       </div>
@@ -1051,7 +1084,7 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50 flex flex-col">
+                    <div className="md:w-1/2 border border-slate-200 rounded-lg p-4 bg-slate-50/50 flex flex-col transition-colors">
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center text-[11px] sm:text-xs font-bold text-slate-500 uppercase">
                           <Grip className="w-4 h-4 mr-1 sm:mr-1.5 text-slate-400" />
@@ -1071,13 +1104,14 @@ export default function App() {
                         value={brailleInput}
                         onChange={(e) => handleBrailleTranslate(e.target.value)}
                         aria-label="Área de digitação ou colagem de caracteres Braille"
-                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400 outline-none text-2xl font-mono text-slate-800 mb-4 resize-y min-h-[4rem]"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400 outline-none text-2xl font-mono mb-4 resize-y min-h-[4rem] transition-colors duration-500"
+                        style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                         placeholder="Cole caracteres Braille aqui..."
                       />
                       
                       <div className="flex items-center justify-between mb-2">
                         <span className="flex items-center text-xs font-bold text-slate-500 uppercase">
-                          <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: corPrincipal }} />
+                          <Languages className="w-4 h-4 mr-1.5 transition-colors" style={{ color: theme.corPrincipal }} />
                           Tradução em Português
                         </span>
                         <button
@@ -1086,7 +1120,7 @@ export default function App() {
                           aria-label="Ouvir tradução em voz alta em português"
                           title="Ouvir tradução em voz alta"
                           className="px-2 py-1 rounded text-[10px] sm:text-xs font-bold flex items-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                          style={{ backgroundColor: `${corPrincipal}20`, color: corPrincipal }}
+                          style={{ backgroundColor: `${theme.corPrincipal}20`, color: theme.corPrincipal }}
                         >
                           <Volume2 className="w-3 h-3 mr-1" />
                           Ouvir
@@ -1116,12 +1150,12 @@ export default function App() {
         {activeTab === 'sobre' && (
           <div 
             id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" 
-            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-slate-700 fade-in space-y-8 text-left"
-            style={{ border: `2px solid ${corPrincipal}` }}
+            className="p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-slate-700 fade-in space-y-8 text-left"
+            style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
-            <div className="border-b border-slate-100 pb-6">
+            <div className="border-b border-slate-200 pb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
-              <p className="text-lg font-medium mt-2 transition-colors" style={{ color: corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
+              <p className="text-lg font-medium mt-2 transition-colors" style={{ color: theme.corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
@@ -1150,14 +1184,14 @@ export default function App() {
         {activeTab === 'parcerias' && (
           <div 
             id="painel-parcerias" role="tabpanel" aria-label="Parcerias" 
-            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 fade-in text-center"
-            style={{ border: `2px solid ${corPrincipal}` }}
+            className="p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 fade-in text-center"
+            style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
             <div className="flex justify-center mb-6">
               <div 
                 className="p-5 rounded-full shadow-inner transition-colors" 
                 aria-hidden="true"
-                style={{ backgroundColor: `${corPrincipal}1A`, color: corPrincipal }}
+                style={{ backgroundColor: `${theme.corPrincipal}1A`, color: theme.corPrincipal }}
               >
                 <Handshake className="w-14 h-14" />
               </div>
@@ -1172,8 +1206,8 @@ export default function App() {
                 Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
               </p>
               <p 
-                className="font-medium text-slate-700 bg-slate-50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors"
-                style={{ borderColor: corPrincipal }}
+                className="font-medium text-slate-700 bg-white/50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors"
+                style={{ borderColor: theme.corPrincipal }}
               >
                 Qualquer escola, instituição ou entidade educacional que tenha interesse em aplicar os nossos materiais pedagógicos, testar o gerador ou firmar algum tipo de colaboração e parceria conosco é mais que bem-vinda!
               </p>
@@ -1183,7 +1217,7 @@ export default function App() {
               <a 
                 href="mailto:andrevinniciosgaito@gmail.com?subject=Interesse%20em%20Parceria%20-%20Química%20ao%20Alcance%20das%20Mãos" 
                 className="inline-flex items-center px-8 py-4 text-white text-lg font-bold rounded-lg shadow-md transition-all transform hover:-translate-y-1 hover:opacity-90"
-                style={{ backgroundColor: corPrincipal }}
+                style={{ backgroundColor: theme.corPrincipal }}
               >
                 <Mail className="w-6 h-6 mr-3" />
                 Entre em Contato Conosco
@@ -1199,8 +1233,8 @@ export default function App() {
         {activeTab === 'equipe' && (
           <div id="painel-equipe" role="tabpanel" aria-label="Nossa Equipe" className="space-y-6 fade-in">
             <div 
-              className="bg-white p-8 rounded-xl shadow-sm transition-colors duration-500 mb-6"
-              style={{ border: `2px solid ${corPrincipal}` }}
+              className="p-8 rounded-xl shadow-sm transition-colors duration-500 mb-6"
+              style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
               <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
@@ -1210,10 +1244,10 @@ export default function App() {
               {EQUIPE.map((membro, index) => (
                 <div 
                   key={index} 
-                  className="bg-white p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 hover:shadow-md"
-                  style={{ border: `2px solid ${corPrincipal}` }}
+                  className="p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col sm:flex-row items-center sm:items-start text-center sm:text-left gap-6 hover:shadow-md"
+                  style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
                 >
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-slate-100 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white/50 flex-shrink-0 bg-slate-200 flex items-center justify-center overflow-hidden">
                     {membro.foto ? (
                       <img src={membro.foto} alt={`Foto de ${membro.nome}`} className="w-full h-full object-cover" />
                     ) : (
@@ -1223,12 +1257,12 @@ export default function App() {
                   <div className="flex-1 space-y-2">
                     <div>
                       <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
-                      <p className="text-sm font-semibold transition-colors" style={{ color: corPrincipal }}>{membro.titulo}</p>
+                      <p className="text-sm font-semibold transition-colors" style={{ color: theme.corPrincipal }}>{membro.titulo}</p>
                     </div>
                     <p className="text-sm text-slate-600 leading-relaxed">
                       {membro.descricao}
                     </p>
-                    <div className="pt-3 mt-3 border-t border-slate-100 flex flex-wrap justify-center sm:justify-start gap-4">
+                    <div className="pt-3 mt-3 border-t border-slate-200/50 flex flex-wrap justify-center sm:justify-start gap-4">
                       {membro.email && (
                         <a href={`mailto:${membro.email}`} aria-label={`E-mail de ${membro.nome}`} className="flex items-center text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors">
                           <Mail className="w-3.5 h-3.5 mr-1" />
@@ -1255,8 +1289,8 @@ export default function App() {
         {activeTab === 'bug' && (
           <div 
             id="painel-bug" role="tabpanel" aria-label="Reporte de Bug" 
-            className="bg-white p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-center fade-in"
-            style={{ border: `2px solid ${corPrincipal}` }}
+            className="p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-center fade-in"
+            style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
             <div className="flex justify-center mb-6">
               <div className="p-4 bg-red-100 rounded-full text-red-600" aria-hidden="true">
@@ -1273,7 +1307,7 @@ export default function App() {
             <a 
               href="mailto:andrevinniciosgaito@gmail.com?subject=Reporte%20de%20Bug%20/%20Sugestão%20-%20Gerador%20Braille" 
               className="inline-flex items-center px-6 py-3 text-white font-bold rounded-lg shadow-sm transition-all hover:opacity-90"
-              style={{ backgroundColor: corPrincipal }}
+              style={{ backgroundColor: theme.corPrincipal }}
             >
               <Mail className="w-5 h-5 mr-2" />
               Reportar para a Equipe
@@ -1285,13 +1319,13 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: INSTRUÇÕES (Placeholder) */}
+        {/* ABA: INSTRUÇÕES */}
         {/* ======================================================== */}
         {activeTab === 'instrucoes' && (
           <div 
             id="painel-instrucoes" role="tabpanel" aria-label="Instruções" 
-            className="bg-white p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
-            style={{ border: `2px solid ${corPrincipal}` }}
+            className="p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
+            style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Instruções de Impressão</h2>
             <p>Área reservada para guias passo a passo de como fatiar e imprimir o modelo STL gerado.</p>
@@ -1299,13 +1333,13 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: SAIBA MAIS (Placeholder) */}
+        {/* ABA: SAIBA MAIS */}
         {/* ======================================================== */}
         {activeTab === 'saiba-mais' && (
           <div 
             id="painel-saiba-mais" role="tabpanel" aria-label="Saiba Mais" 
-            className="bg-white p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
-            style={{ border: `2px solid ${corPrincipal}` }}
+            className="p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in"
+            style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
             <p>Área reservada para documentações futuras.</p>
@@ -1327,7 +1361,7 @@ export default function App() {
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
-                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors" style={{ color: corPrincipal }}>André Vinnicios S. Gaito</a>
+                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors" style={{ color: theme.corPrincipal === '#511576' ? '#a0f658' : theme.corPrincipal }}>André Vinnicios S. Gaito</a>
               </p>
             </div>
           </div>
