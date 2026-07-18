@@ -1327,10 +1327,7 @@ export default function App() {
             
             <div className="max-w-3xl mx-auto space-y-6 text-slate-600 leading-relaxed text-left sm:text-center text-justify">
               <p>
-                O projeto <strong>Química ao Alcance das Mãos</strong> visa transformar o ensino e a aprendizagem da química através da aplicação de ferramentas inclusivas e tecnologias inovadoras, como a impressão 3D e o design aberto de materiais didáticos.
-              </p>
-              <p>
-                Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
+                O projeto <strong>Química ao Alcance das Mãos</strong> visa transformar o ensino e a aprendizagem da química através da aplicação de ferramentas inclusivas e tecnologias inovadoras, como a impressão 3D e o design aberto de materiais didáticos. Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
               </p>
               <p 
                 className="font-medium text-slate-700 bg-white/50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors text-justify"
@@ -1463,7 +1460,7 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              COu envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong>
+              Ou envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
@@ -1561,7 +1558,7 @@ export default function App() {
                       </div>
                       <div className="p-4 text-sm text-slate-600 text-justify">
                         <strong className="block text-slate-800 mb-1 text-base">Passo 1: Impressora</strong>
-                        Abra o OrcaSlicer e selecione sua impressora na lista de dispositivos. O programa tem perfis prontos para máquinas modernas, como a <em>Creality Ender-3 V3 KE</em> ou a série <em>Bambu Lab</em>.
+                        Abra o OrcaSlicer e selecione sua impressora na lista de dispositivos. O programa tem perfis prontos para máquinas modernas, como a <em>Creality Ender-3 V3 KE</em> ou a <em>Bambu Lab A1</em>.
                       </div>
                     </div>
 
@@ -1582,8 +1579,8 @@ export default function App() {
                         <img src={imgPreVisualizacao} alt="Pré visualização da peça 3D fatiada" className="w-full h-auto object-contain rounded" />
                       </div>
                       <div className="p-4 text-sm text-slate-600 text-justify">
-                        <strong className="block text-slate-800 mb-1 text-base">Passo 3: Pré-Visualizar</strong>
-                        No canto superior direito, clique em "Fatiar" (ou aperte `Ctrl + R`) para gerar as camadas de impressão. Confira se os pontos subiram de forma perfeitamente lisa na visualização e, em seguida, clique em <strong>Exportar Arquivo G-code</strong> para imprimir.
+                        <strong className="block text-slate-800 mb-1 text-base">Passo 3: Fatiamento da Peça 3D</strong>
+                        No canto superior direito, clique em "Pré-Visualizar" (ou aperte "Ctrl + R") para gerar as camadas de impressão. Confira se os pontos subiram de forma perfeitamente lisa na visualização e, em seguida, clique em <strong>Exportar Arquivo G-code</strong> para imprimir.
                       </div>
                     </div>
 
@@ -1593,8 +1590,8 @@ export default function App() {
                         <img src={imgMultiCor} alt="Impressão Braille colorida multimaterial" className="w-full h-auto object-contain rounded" />
                       </div>
                       <div className="p-4 text-sm text-slate-600 text-justify">
-                        <strong className="block text-slate-800 mb-1 text-base">Dica Extra: Multimaterial (Cores)</strong>
-                        Possui uma máquina multicolorida (Bambu Lab A1/P1S combo, Creality K1C, Anycubic Kobra 3)? Você pode pintar os pontos Braille de outra cor usando a ferramenta do próprio fatiador. Isso gera um excelente contraste e ajuda incrivelmente alunos com baixa visão ou professores com visão regular!
+                        <strong className="block text-slate-800 mb-1 text-base">Dica Extra: Impressão Multimaterial (Colorida)</strong>
+                        Caso possua uma máquina multicolorida (Bambu Lab A1/P1S combo, Creality K1C, Anycubic Kobra 3). Você pode pintar os pontos Braille de outra cor usando a ferramenta do próprio fatiador. Isso gera um excelente contraste e ajuda incrivelmente alunos com baixa visão ou professores com visão regular a identificar os caracteres braille!
                       </div>
                     </div>
 
