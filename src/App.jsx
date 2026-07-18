@@ -37,9 +37,9 @@ import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
 import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 
 const EQUIPE = [
-  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem e impressão 3D.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
+  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem, impressão 3D e aplicação/validação dos materiais didáticos produzidos.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
   { nome: "Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
-  { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o IBC e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
+  { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o Instituto Benjamin Costant (IBC) e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
   { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
   { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "http://lattes.cnpq.br/3500602218294576", foto: fotoHugoReis },
   { nome: "Pedro Xavier", titulo: "Mestrando em Química", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
@@ -1357,7 +1357,7 @@ export default function App() {
               <Heart className="w-12 h-12 text-rose-500 mx-auto mb-4" />
               <h3 className="text-2xl font-bold text-slate-800 mb-4">Apoie esta Iniciativa</h3>
               <p className="text-slate-600 text-justify max-w-2xl mx-auto leading-relaxed mb-6">
-                O <strong>Química ao Alcance das Mãos</strong> é um projeto independente e 100% voluntário. Nós garantimos que nossa plataforma e todos os seus recursos permanecerão <strong>sempre gratuitos e de código aberto</strong> para educadores, escolas e alunos de todo o Brasil. No entanto, temos custos contínuos para manter os servidores funcionando e hospedar o site de forma estável. Se este gerador foi útil para você ou sua instituição, considere fazer uma doação voluntária de qualquer valor! Sua contribuição é fundamental para nos ajudar a manter a ferramenta no ar, além de permitir atualizações e a criação de novas funcionalidades assistivas.
+                O <strong>Química ao Alcance das Mãos</strong> é um projeto independente e 100% voluntário. Nós garantimos que nossa plataforma e todos os seus recursos permanecerão <strong>sempre gratuitos e de código aberto</strong> para educadores, escolas e alunos de todo o Brasil. No entanto, temos custos contínuos para manter o site no ar de forma estável e continuar trazendo melhorias ao projeto. Se este gerador foi útil para você ou sua instituição, considere fazer uma doação voluntária de qualquer valor! Sua contribuição é fundamental para nos ajudar a manter a ferramenta no ar, além de permitir atualizações e a criação de novas funcionalidades assistivas.
               </p>
               
               <div className="flex flex-col items-center justify-center">
@@ -1367,7 +1367,7 @@ export default function App() {
                   className="inline-flex items-center px-6 py-3 font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors shadow-md transform hover:-translate-y-0.5"
                 >
                   {pixCopiado ? <Check className="w-5 h-5 mr-2" /> : <Heart className="w-5 h-5 mr-2 fill-current" />}
-                  {pixCopiado ? 'Chave PIX Copiada!' : 'Fazer um PIX de Coração'}
+                  {pixCopiado ? 'Chave PIX Copiada!' : 'Fazer um PIX'}
                 </button>
                 <p className="text-xs text-slate-500 mt-3 font-mono bg-white px-3 py-1 border border-slate-200 rounded">
                   Chave PIX (E-mail): <strong>andrevinniciosgaito@gmail.com</strong>
@@ -1387,7 +1387,7 @@ export default function App() {
               style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2 text-justify">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+              <p className="text-slate-600 text-center mt-2 text-justify">Conheça os pesquisadores, desenvolvedores e professores que tornam o projeto Química ao Alcance das Mãos possível.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1452,7 +1452,7 @@ export default function App() {
               O "Gerador 3D de Química para Braille" é um projeto de código aberto em constante evolução. 
               Caso você encontre algum erro na geração dos caracteres, formatações inconsistentes, problemas na 
               malha 3D ou qualquer outra falha técnica, por favor, nos avise! Suas sugestões de melhorias 
-              também são essenciais para aprimorarmos a ferramenta.
+              também são sempre bem-vindas, e essenciais para continuarmos aprimorando as ferramentas e funcionalidades do site.
             </p>
             <a 
               href="mailto:andrevinniciosgaito@gmail.com?subject=Reporte%20de%20Bug%20/%20Sugestão%20-%20Gerador%20Braille" 
@@ -1463,7 +1463,7 @@ export default function App() {
               Reportar para a Equipe
             </a>
             <p className="mt-6 text-sm text-slate-500">
-              Contato direto: <strong>andrevinniciosgaito@gmail.com</strong>
+              COu envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong>
             </p>
           </div>
         )}
@@ -1479,7 +1479,7 @@ export default function App() {
           >
             <div className="border-b border-slate-200 pb-4">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Manual de Instruções</h2>
-              <p className="text-sm sm:text-base text-slate-500 mt-1 text-justify">Veja como extrair o máximo potencial do gerador digital e realizar a impressão 3D correta das suas matrizes em Braille.</p>
+              <p className="text-sm sm:text-base text-slate-500 mt-1 text-justify">Veja como extrair o máximo potencial do gerador digital e realizar a impressão 3D das suas matrizes em Braille.</p>
             </div>
 
             {/* BLOCO 1: NAVEGANDO NO PORTAL */}
@@ -1493,14 +1493,14 @@ export default function App() {
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Box className="w-4 h-4 text-slate-500" /> Gerador Braille 3D
                   </h4>
-                  <p className="text-justify">Digite qualquer fórmula química, palavra ou texto longo no campo principal. O sistema aplicará as normas de grafia instantaneamente e montará o modelo 3D em tempo real. Clicando em <strong>"Visualizar STL"</strong> você avalia o resultado e, em seguida, é só clicar em <strong>Baixar Arquivo STL</strong> para levar à impressora.</p>
+                  <p className="text-justify">Digite qualquer fórmula química, palavra ou texto longo no campo principal. O sistema aplicará as normas de grafia instantaneamente e montará o modelo 3D em tempo real. Clicando em <strong>"Visualizar STL"</strong> você avalia o resultado e, em seguida, basta clicar em <strong>Baixar Arquivo STL</strong> para levar à impressora.</p>
                 </div>
                 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1 shadow-sm">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <ArrowRight className="w-4 h-4 text-slate-500" /> Leitura Tátil 2D
                   </h4>
-                  <p className="text-justify">Abaixo do modelo 3D, você verá um mapa bidimensional das celas geradas. As <strong>bolinhas escuras</strong> indicam os pontos em relevo. É uma forma simples e visual de validar o que foi escrito e ajudar alunos ou educadores a se familiarizarem com a grafia Braille sem depender do toque no primeiro momento.</p>
+                  <p className="text-justify">Abaixo do modelo 3D, você verá um mapa bidimensional das celas geradas, em que as <strong>bolinhas pretas</strong> indicam os pontos em relevo. É uma forma simples e visual de validar o que foi escrito e ajudar alunos ou educadores a se familiarizarem com a grafia Braille num primeiro momento.</p>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1 shadow-sm">
@@ -1514,7 +1514,7 @@ export default function App() {
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Languages className="w-4 h-4 text-slate-500" /> Tradutor Reverso e Áudio
                   </h4>
-                  <p className="text-justify">Achou uma frase em Braille na internet e quer saber o que está escrito? Basta colar os pontos na caixa <strong>"Digite o texto Braille"</strong>. O site fará a leitura reversa traduzindo para o português no mesmo instante. Você também pode clicar em <strong>"Ouvir"</strong> para o sistema ditar o texto em voz alta para você.</p>
+                  <p className="text-justify">Achou uma frase em Braille na internet e quer saber o que está escrito? Basta colar os caracteres em braille na caixa <strong>"Digite o texto Braille"</strong>. O site fará a leitura reversa traduzindo para o português no mesmo instante. Também é possível clicar em <strong>"Ouvir"</strong> para o sistema ditar o texto em voz alta para você.</p>
                 </div>
               </div>
             </div>
@@ -1611,9 +1611,9 @@ export default function App() {
 
                 <div className="pt-4 text-sm sm:text-base text-slate-700">
                   <h4 className="font-bold mb-1">Ainda não possui um software fatiador?</h4>
-                  <p className="text-justify mb-4">Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download gratuito do <strong>OrcaSlicer</strong>. É a ferramenta de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e perfeitamente calibrados para praticamente todas as marcas do mercado.</p>
+                  <p className="text-justify mb-4">Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download do <strong>OrcaSlicer</strong>. Pois é uma das ferramentas de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e perfeitamente calibrados para praticamente todas as marcas do mercado.</p>
                   <a href="https://www.orcaslicer.com/download/" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
-                    <Download className="w-5 h-5 mr-2" /> Baixar OrcaSlicer Oficial
+                    <Download className="w-5 h-5 mr-2" /> Baixar OrcaSlicer
                   </a>
                 </div>
               </div>
