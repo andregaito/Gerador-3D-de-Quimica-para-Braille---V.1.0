@@ -1,10 +1,11 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info, Heart } from 'lucide-react';
 import { gerarModeloJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
+import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Bounds, Environment } from '@react-three/drei';
-import { STLLoader } from 'three-stdlib';
+import { STLLoader, STLExporter } from 'three-stdlib';
 import { useLoader } from '@react-three/fiber';
 
 // Importações de Imagens Principais e Logos Dinâmicas por Cor
@@ -49,7 +50,7 @@ const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg"
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
 // =========================================================
-// RENDERIZADOR 3D: EM PÉ E SOBRE O PLANO Y=0
+// RENDERIZADOR 3D: EM PÉ E SOBRE O PLANO Y=0 
 // =========================================================
 const StlModel = ({ url, cor }) => {
   const originalGeom = useLoader(STLLoader, url);
@@ -476,7 +477,7 @@ const AlertaSugestao = ({ sugestaoDados, aoAplicarSugestao }) => {
       <div className="p-1 bg-amber-500/10 rounded-full text-amber-600 flex-shrink-0 mt-0.5">
         <Info className="w-5 h-5" />
       </div>
-      <div className="flex-1 text-xs sm:text-sm text-amber-900 leading-relaxed">
+      <div className="flex-1 text-xs sm:text-sm text-amber-900 leading-relaxed text-justify">
         <span className="font-semibold block text-amber-950 mb-0.5">Sugestão de Estequiometria / IUPAC:</span>
         {sugestaoDados.mensagem}
         <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -510,6 +511,7 @@ export default function App() {
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [pixCopiado, setPixCopiado] = useState(false);
   
   const [brailleInput, setBrailleInput] = useState('');
   const [translatedText, setTranslatedText] = useState('');
@@ -635,11 +637,42 @@ export default function App() {
     }
   };
 
+  // =========================================================
+  // EXPORTAÇÃO DA PEÇA "EM PÉ" PARA O STL
+  // =========================================================
   const handleDownload = () => {
-    if (stlUrl) {
+    if (!stlUrl) return;
+
+    const loader = new STLLoader();
+    loader.load(stlUrl, (geometry) => {
+      // Rotaciona a geometria em 90 graus (Math.PI / 2) no eixo X 
+      // para que a peça seja baixada "em pé" no fatiador
+      geometry.rotateX(Math.PI / 2);
+      
+      // Reposiciona a geometria garantindo que ela fique centralizada e encostada na base Z=0
+      geometry.computeBoundingBox();
+      const box = geometry.boundingBox;
+      const centerX = (box.max.x + box.min.x) / 2;
+      const centerY = (box.max.y + box.min.y) / 2;
+      geometry.translate(-centerX, -centerY, -box.min.z);
+
+      // Usamos o STLExporter nativo do three-stdlib para gerar o novo arquivo corrigido
+      const mesh = new THREE.Mesh(geometry);
+      const exporter = new STLExporter();
+      const stlString = exporter.parse(mesh); 
+      
+      const blob = new Blob([stlString], { type: 'text/plain' });
+      const downloadUrl = URL.createObjectURL(blob);
+      
       const nomeStr = input.replace(/[^a-zA-Z0-9]/g, '_');
-      baixarArquivoSTL(stlUrl, `MatrizBraille_${nomeStr}.stl`);
-    }
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `MatrizBraille_${nomeStr}.stl`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    });
   };
 
   const brailleUnicodeText = cells.map(cell => {
@@ -657,6 +690,12 @@ export default function App() {
     navigator.clipboard.writeText(brailleUnicodeText);
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000); 
+  };
+  
+  const handleCopyPix = () => {
+    navigator.clipboard.writeText('andrevinniciosgaito@gmail.com');
+    setPixCopiado(true);
+    setTimeout(() => setPixCopiado(false), 3000);
   };
 
   const handleBrailleTranslate = (text) => {
@@ -802,6 +841,9 @@ export default function App() {
     recognition.start();
   };
 
+  // =========================================================
+  // MOTOR DE VOZ OTIMIZADO (CADÊNCIA E VOZES NEURAIS)
+  // =========================================================
   const handleSpeak = () => {
     if (!translatedText) return;
     
@@ -909,7 +951,7 @@ export default function App() {
             >
               <div className="text-slate-600 space-y-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                  <p className="flex-1 leading-relaxed pr-2">
+                  <p className="flex-1 leading-relaxed pr-2 text-justify">
                     Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela{' '}
                     <a 
                       href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" 
@@ -930,7 +972,7 @@ export default function App() {
                   className="border-l-4 pl-3 py-2 pr-3 rounded-r text-sm transition-colors"
                   style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}
                 >
-                  <p>
+                  <p className="text-justify">
                     Uma ferramenta de tecnologia assistiva desenvolvida por{' '}
                     <a 
                       href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" 
@@ -1036,7 +1078,7 @@ export default function App() {
               </form>
             </div>
 
-            {/* VISUALIZADOR 3D */}
+            {/* VISUALIZADOR 3D COM SINTAXE DE TAGS PERFEITA */}
             {stlUrl && (
               <div 
                 role="region" 
@@ -1065,7 +1107,7 @@ export default function App() {
                   </button>
                 </div>
                 
-                <p className="sr-only">
+                <p className="sr-only text-justify">
                   Modelo 3D gerado com sucesso para a fórmula {input}. O arquivo possui aproximadamente {celasFisicas.length} celas braille. Utilize o botão de download acima para baixar o arquivo pronto para impressão.
                 </p>
 
@@ -1132,7 +1174,7 @@ export default function App() {
                       <div>
                         <span className="block text-xs font-bold text-slate-500 mb-2 uppercase">Texto Braille (Unicode)</span>
                         <div 
-                          className="text-4xl tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap p-2 rounded-md transition-colors duration-500"
+                          className="text-4xl tracking-widest font-mono mb-4 break-all min-h-[3rem] whitespace-pre-wrap p-2 rounded-md transition-colors duration-500 text-justify"
                           style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                         >
                           {brailleUnicodeText}
@@ -1177,7 +1219,7 @@ export default function App() {
                         value={brailleInput}
                         onChange={(e) => handleBrailleTranslate(e.target.value)}
                         aria-label="Área de digitação ou colagem de caracteres Braille"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400 outline-none text-2xl font-mono mb-4 resize-y min-h-[4rem] transition-colors duration-500"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md focus:ring-2 focus:ring-slate-400 outline-none text-2xl font-mono mb-4 resize-y min-h-[4rem] transition-colors duration-500 text-justify"
                         style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                         placeholder="Cole caracteres Braille aqui..."
                       />
@@ -1216,7 +1258,7 @@ export default function App() {
                       </div>
 
                       <div 
-                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base sm:text-lg min-h-[3.5rem] font-sans whitespace-pre-wrap transition-colors duration-500 flex-grow"
+                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-base sm:text-lg min-h-[3.5rem] font-sans whitespace-pre-wrap transition-colors duration-500 flex-grow text-justify"
                         style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                       >
                         {translatedText || <span className="text-slate-400 italic text-sm">A tradução aparecerá aqui...</span>}
@@ -1240,23 +1282,23 @@ export default function App() {
           >
             <div className="border-b border-slate-200 pb-6">
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2>
-              <p className="text-lg font-medium mt-2 transition-colors" style={{ color: theme.corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
+              <p className="text-lg font-medium mt-2 transition-colors text-justify" style={{ color: theme.corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-justify">
                 O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o MEC tenham estabelecido a norma da <em>Grafia Química Braille para Uso no Brasil</em>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">A Solução: Código Aberto e Impressão 3D</h3>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-justify">
                 O Gerador 3D de Química para Braille nasceu para ser uma ponte entre a tecnologia de prototipagem rápida e a educação inclusiva. Através desta plataforma <strong>Open Source</strong>, qualquer professor, escola ou laboratório maker pode digitar uma fórmula e gerar uma matriz tátil digital (STL) em segundos. O que antes demorava semanas para ser encomendado, agora pode ser fabricado na própria escola via impressão 3D, sob demanda e com baixo custo.
               </p>
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed text-justify">
                 Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de <strong>equipamentos de laboratório adaptados</strong> e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.
               </p>
             </div>
@@ -1264,7 +1306,7 @@ export default function App() {
         )}
 
         {/* ======================================================== */}
-        {/* ABA: PARCERIAS */}
+        {/* ABA: PARCERIAS E DOAÇÕES */}
         {/* ======================================================== */}
         {activeTab === 'parcerias' && (
           <div 
@@ -1283,7 +1325,7 @@ export default function App() {
             </div>
             <h2 className="text-3xl font-bold text-slate-800 mb-6 tracking-tight">Parcerias e Expansão</h2>
             
-            <div className="max-w-3xl mx-auto space-y-6 text-slate-600 leading-relaxed text-left sm:text-center">
+            <div className="max-w-3xl mx-auto space-y-6 text-slate-600 leading-relaxed text-left sm:text-center text-justify">
               <p>
                 O projeto <strong>Química ao Alcance das Mãos</strong> visa transformar o ensino e a aprendizagem da química através da aplicação de ferramentas inclusivas e tecnologias inovadoras, como a impressão 3D e o design aberto de materiais didáticos.
               </p>
@@ -1291,14 +1333,14 @@ export default function App() {
                 Nosso maior objetivo é <strong>expandir o alcance dessa tecnologia</strong>. Acreditamos que o conhecimento aberto tem o poder de mudar realidades, e por isso queremos que nossas matrizes de impressão 3D cheguem ao máximo possível de escolas, laboratórios e institutos de educação em todos os estados do país.
               </p>
               <p 
-                className="font-medium text-slate-700 bg-white/50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors"
+                className="font-medium text-slate-700 bg-white/50 p-4 border-l-4 rounded-r-lg shadow-sm transition-colors text-justify"
                 style={{ borderColor: theme.corPrincipal }}
               >
                 Qualquer escola, instituição ou entidade educacional que tenha interesse em aplicar os nossos materiais pedagógicos, testar o gerador ou firmar algum tipo de colaboração e parceria conosco é mais que bem-vinda!
               </p>
             </div>
 
-            <div className="mt-10">
+            <div className="mt-8 mb-12">
               <a 
                 href="mailto:andrevinniciosgaito@gmail.com?subject=Interesse%20em%20Parceria%20-%20Química%20ao%20Alcance%20das%20Mãos" 
                 className="inline-flex items-center px-8 py-4 text-white text-lg font-bold rounded-lg shadow-md transition-all transform hover:-translate-y-1 hover:opacity-90"
@@ -1308,6 +1350,29 @@ export default function App() {
                 Entre em Contato Conosco
               </a>
               <p className="mt-4 text-sm text-slate-500">Ou envie um e-mail para: <strong>andrevinniciosgaito@gmail.com</strong></p>
+            </div>
+
+            {/* BLOCO VOLUNTARIADO E DOAÇÕES */}
+            <div className="p-6 sm:p-8 rounded-xl bg-slate-50 border border-slate-200 shadow-sm mt-8">
+              <Heart className="w-12 h-12 text-rose-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-bold text-slate-800 mb-4">Apoie esta Iniciativa</h3>
+              <p className="text-slate-600 text-justify max-w-2xl mx-auto leading-relaxed mb-6">
+                O <strong>Química ao Alcance das Mãos</strong> é um projeto independente e 100% voluntário. Nós garantimos que nossa plataforma e todos os seus recursos permanecerão <strong>sempre gratuitos e de código aberto</strong> para educadores, escolas e alunos de todo o Brasil. No entanto, temos custos contínuos para manter os servidores funcionando e hospedar o site de forma estável. Se este gerador foi útil para você ou sua instituição, considere fazer uma doação voluntária de qualquer valor! Sua contribuição é fundamental para nos ajudar a manter a ferramenta no ar, além de permitir atualizações e a criação de novas funcionalidades assistivas.
+              </p>
+              
+              <div className="flex flex-col items-center justify-center">
+                <button 
+                  onClick={handleCopyPix}
+                  aria-label="Copiar chave PIX para doação"
+                  className="inline-flex items-center px-6 py-3 font-bold text-white bg-rose-500 hover:bg-rose-600 rounded-lg transition-colors shadow-md transform hover:-translate-y-0.5"
+                >
+                  {pixCopiado ? <Check className="w-5 h-5 mr-2" /> : <Heart className="w-5 h-5 mr-2 fill-current" />}
+                  {pixCopiado ? 'Chave PIX Copiada!' : 'Fazer um PIX de Coração'}
+                </button>
+                <p className="text-xs text-slate-500 mt-3 font-mono bg-white px-3 py-1 border border-slate-200 rounded">
+                  Chave PIX (E-mail): <strong>andrevinniciosgaito@gmail.com</strong>
+                </p>
+              </div>
             </div>
           </div>
         )}
@@ -1322,7 +1387,7 @@ export default function App() {
               style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
             >
               <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center">Nossa Equipe</h2>
-              <p className="text-slate-600 text-center mt-2">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
+              <p className="text-slate-600 text-center mt-2 text-justify">Conheça os pesquisadores e desenvolvedores por trás do projeto.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1342,9 +1407,9 @@ export default function App() {
                   <div className="flex-1 space-y-2">
                     <div>
                       <h3 className="text-lg font-bold text-slate-800 leading-tight">{membro.nome}</h3>
-                      <p className="text-sm font-semibold transition-colors" style={{ color: theme.corPrincipal }}>{membro.titulo}</p>
+                      <p className="text-sm font-semibold transition-colors text-justify" style={{ color: theme.corPrincipal }}>{membro.titulo}</p>
                     </div>
-                    <p className="text-sm text-slate-600 leading-relaxed">
+                    <p className="text-sm text-slate-600 leading-relaxed text-justify">
                       {membro.descricao}
                     </p>
                     <div className="pt-3 mt-3 border-t border-slate-200/50 flex flex-wrap justify-center sm:justify-start gap-4">
@@ -1383,7 +1448,7 @@ export default function App() {
               </div>
             </div>
             <h2 className="text-2xl font-bold text-slate-800 mb-4">Achou um Bug ou Tem uma Sugestão?</h2>
-            <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
+            <p className="text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8 text-justify">
               O "Gerador 3D de Química para Braille" é um projeto de código aberto em constante evolução. 
               Caso você encontre algum erro na geração dos caracteres, formatações inconsistentes, problemas na 
               malha 3D ou qualquer outra falha técnica, por favor, nos avise! Suas sugestões de melhorias 
@@ -1414,7 +1479,7 @@ export default function App() {
           >
             <div className="border-b border-slate-200 pb-4">
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Manual de Instruções</h2>
-              <p className="text-sm sm:text-base text-slate-500 mt-1">Veja como extrair o máximo potencial do gerador digital e realizar a impressão 3D correta das suas matrizes em Braille.</p>
+              <p className="text-sm sm:text-base text-slate-500 mt-1 text-justify">Veja como extrair o máximo potencial do gerador digital e realizar a impressão 3D correta das suas matrizes em Braille.</p>
             </div>
 
             {/* BLOCO 1: NAVEGANDO NO PORTAL */}
@@ -1428,28 +1493,28 @@ export default function App() {
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Box className="w-4 h-4 text-slate-500" /> Gerador Braille 3D
                   </h4>
-                  <p>Digite qualquer fórmula química, palavra ou texto longo no campo principal. O sistema aplicará as normas de grafia instantaneamente e montará o modelo 3D em tempo real. Clicando em <strong>"Visualizar STL"</strong> você avalia o resultado e, em seguida, é só clicar em <strong>Baixar Arquivo STL</strong> para levar à impressora.</p>
+                  <p className="text-justify">Digite qualquer fórmula química, palavra ou texto longo no campo principal. O sistema aplicará as normas de grafia instantaneamente e montará o modelo 3D em tempo real. Clicando em <strong>"Visualizar STL"</strong> você avalia o resultado e, em seguida, é só clicar em <strong>Baixar Arquivo STL</strong> para levar à impressora.</p>
                 </div>
                 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1 shadow-sm">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <ArrowRight className="w-4 h-4 text-slate-500" /> Leitura Tátil 2D
                   </h4>
-                  <p>Abaixo do modelo 3D, você verá um mapa bidimensional das celas geradas. As <strong>bolinhas escuras</strong> indicam os pontos em relevo. É uma forma simples e visual de validar o que foi escrito e ajudar alunos ou educadores a se familiarizarem com a grafia Braille sem depender do toque no primeiro momento.</p>
+                  <p className="text-justify">Abaixo do modelo 3D, você verá um mapa bidimensional das celas geradas. As <strong>bolinhas escuras</strong> indicam os pontos em relevo. É uma forma simples e visual de validar o que foi escrito e ajudar alunos ou educadores a se familiarizarem com a grafia Braille sem depender do toque no primeiro momento.</p>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1 shadow-sm">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Copy className="w-4 h-4 text-slate-500" /> Texto Braille (Unicode)
                   </h4>
-                  <p>Essa caixa gera o seu texto utilizando a fonte Unicode oficial do Braille digital. O botão <strong>"Copiar Texto Braille"</strong> permite que você copie os símbolos e cole-os diretamente em e-mails, redes sociais, documentos do Word ou painéis de comunicação.</p>
+                  <p className="text-justify">Essa caixa gera o seu texto utilizando a fonte Unicode oficial do Braille digital. O botão <strong>"Copiar Texto Braille"</strong> permite que você copie os símbolos e cole-os diretamente em e-mails, redes sociais, documentos do Word ou painéis de comunicação.</p>
                 </div>
 
                 <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 space-y-1 shadow-sm">
                   <h4 className="font-bold text-slate-800 flex items-center gap-1.5">
                     <Languages className="w-4 h-4 text-slate-500" /> Tradutor Reverso e Áudio
                   </h4>
-                  <p>Achou uma frase em Braille na internet e quer saber o que está escrito? Basta colar os pontos na caixa <strong>"Digite o texto Braille"</strong>. O site fará a leitura reversa traduzindo para o português no mesmo instante. Você também pode clicar em <strong>"Ouvir"</strong> para o sistema ditar o texto em voz alta para você.</p>
+                  <p className="text-justify">Achou uma frase em Braille na internet e quer saber o que está escrito? Basta colar os pontos na caixa <strong>"Digite o texto Braille"</strong>. O site fará a leitura reversa traduzindo para o português no mesmo instante. Você também pode clicar em <strong>"Ouvir"</strong> para o sistema ditar o texto em voz alta para você.</p>
                 </div>
               </div>
             </div>
@@ -1461,9 +1526,9 @@ export default function App() {
                 2. Customização Ergonômica da Matriz
               </h3>
               <div className="p-4 rounded-lg bg-slate-50/50 border border-slate-100 text-sm sm:text-base text-slate-600 leading-relaxed space-y-2 shadow-sm">
-                <p>Ao abrir o painel de <strong>"Opções Avançadas de Impressão 3D"</strong> logo abaixo do campo de texto, você desbloqueia o controle de toda a geometria matemática da peça gerada: altura e diâmetro dos pontos, espessura da base, arredondamento das bordas, etc.</p>
-                <p className="font-medium text-slate-700">Por que isso é útil?</p>
-                <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm">
+                <p className="text-justify">Ao abrir o painel de <strong>"Opções Avançadas de Impressão 3D"</strong> logo abaixo do campo de texto, você desbloqueia o controle de toda a geometria matemática da peça gerada: altura e diâmetro dos pontos, espessura da base, arredondamento das bordas, etc.</p>
+                <p className="font-medium text-slate-700 text-justify">Por que isso é útil?</p>
+                <ul className="list-disc pl-5 space-y-1 text-xs sm:text-sm text-justify">
                   <li><strong>Acessibilidade sob medida:</strong> Alguns alunos com perda de sensibilidade tátil podem preferir que os pontos Braille sejam ligeiramente mais altos ou mais espaçados para facilitar a distinção.</li>
                   <li><strong>Calibração do Bico da Impressora:</strong> Se estiver usando impressoras com bicos maiores (0.6mm ou 0.8mm) para imprimir mais rápido, você pode aumentar o <em>Diâmetro do Ponto</em> para evitar que fiquem finos ou falhados demais.</li>
                 </ul>
@@ -1482,73 +1547,73 @@ export default function App() {
                   <h4 className="font-extrabold text-red-700 text-base uppercase tracking-wider flex items-center gap-1.5">
                     ⚠️ REGRA DE OURO: IMPRESSÃO SEMPRE NA VERTICAL (EM PÉ)
                   </h4>
-                  <p className="text-slate-700 text-sm sm:text-base">
+                  <p className="text-slate-700 text-sm sm:text-base text-justify">
                     Ao exportar o arquivo 3D <strong>".stl"</strong> e jogá-lo no software para impressão (fatiador), certifique-se de que a placa de texto está posicionada <strong>na vertical ("em pé") sobre a mesa</strong>, orientada ao longo do eixo Z.
                   </p>
                   
-                  {/* Grid de 4 Imagens Explicativas em Linha Horizontal */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                  {/* Grid de 2 Imagens Explicativas em Linha Horizontal (Ficam muito maiores e mais claras) */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
                     
                     {/* Imagem 1 */}
                     <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-1">
-                        <img src={imgSelecaoImpressora} alt="Seleção de Impressora no OrcaSlicer" className="w-full h-full object-contain rounded" />
+                      <div className="bg-slate-100 flex items-center justify-center p-2">
+                        <img src={imgSelecaoImpressora} alt="Seleção de Impressora no OrcaSlicer" className="w-full h-auto object-contain rounded" />
                       </div>
-                      <div className="p-3 text-xs text-slate-600">
-                        <strong className="block text-slate-800 mb-1">Passo 1: Impressora</strong>
+                      <div className="p-4 text-sm text-slate-600 text-justify">
+                        <strong className="block text-slate-800 mb-1 text-base">Passo 1: Impressora</strong>
                         Abra o OrcaSlicer e selecione sua impressora na lista de dispositivos. O programa tem perfis prontos para máquinas modernas, como a <em>Creality Ender-3 V3 KE</em> ou a série <em>Bambu Lab</em>.
                       </div>
                     </div>
 
                     {/* Imagem 2 */}
                     <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-1">
-                        <img src={imgMenuInicial} alt="Menu inicial com peça posicionada em pé" className="w-full h-full object-contain rounded" />
+                      <div className="bg-slate-100 flex items-center justify-center p-2">
+                        <img src={imgMenuInicial} alt="Menu inicial com peça posicionada em pé" className="w-full h-auto object-contain rounded" />
                       </div>
-                      <div className="p-3 text-xs text-slate-600">
-                        <strong className="block text-slate-800 mb-1">Passo 2: Filamento e Posição</strong>
-                        Arraste o seu `.stl` e gire-o para ficar em pé. Utilize <strong>PLA</strong> ou <strong>PETG</strong>. Evite ABS em impressoras abertas, pois a peça longa sofrerá "Warping" (encolhimento e descolamento da mesa).
+                      <div className="p-4 text-sm text-slate-600 text-justify">
+                        <strong className="block text-slate-800 mb-1 text-base">Passo 2: Filamento e Posição</strong>
+                        Arraste o seu `.stl` para dentro da plataforma. Perceba que a peça já é gerada em pé. Utilize <strong>PLA</strong> ou <strong>PETG</strong>. Evite usar filamento ABS em impressoras de câmara aberta, pois a peça longa certamente sofrerá "Warping" (encolhimento do plástico, fazendo a base descolar da mesa).
                       </div>
                     </div>
 
                     {/* Imagem 3 */}
                     <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-1">
-                        <img src={imgPreVisualizacao} alt="Pré visualização da peça 3D fatiada" className="w-full h-full object-contain rounded" />
+                      <div className="bg-slate-100 flex items-center justify-center p-2">
+                        <img src={imgPreVisualizacao} alt="Pré visualização da peça 3D fatiada" className="w-full h-auto object-contain rounded" />
                       </div>
-                      <div className="p-3 text-xs text-slate-600">
-                        <strong className="block text-slate-800 mb-1">Passo 3: Pré-Visualizar</strong>
-                        Clique em "Fatiar" (ou aperte `Ctrl + R`) para gerar as camadas de impressão. Confira se tudo está perfeitamente liso e, em seguida, clique em <strong>Exportar Arquivo G-code</strong> para imprimir.
+                      <div className="p-4 text-sm text-slate-600 text-justify">
+                        <strong className="block text-slate-800 mb-1 text-base">Passo 3: Pré-Visualizar</strong>
+                        No canto superior direito, clique em "Fatiar" (ou aperte `Ctrl + R`) para gerar as camadas de impressão. Confira se os pontos subiram de forma perfeitamente lisa na visualização e, em seguida, clique em <strong>Exportar Arquivo G-code</strong> para imprimir.
                       </div>
                     </div>
 
                     {/* Imagem 4 */}
                     <div className="flex flex-col bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-                      <div className="aspect-[4/3] bg-slate-100 flex items-center justify-center p-1">
-                        <img src={imgMultiCor} alt="Impressão Braille colorida multimaterial" className="w-full h-full object-contain rounded" />
+                      <div className="bg-slate-100 flex items-center justify-center p-2">
+                        <img src={imgMultiCor} alt="Impressão Braille colorida multimaterial" className="w-full h-auto object-contain rounded" />
                       </div>
-                      <div className="p-3 text-xs text-slate-600">
-                        <strong className="block text-slate-800 mb-1">Dica: Multimaterial (Cores)</strong>
-                        Possui uma máquina multicolorida (Bambu Lab A1/P1S combo, Ender V3 CFS, Anycubic Kobra 3)? Pinte os pontos Braille de outra cor pelo próprio fatiador. Ajuda incrivelmente alunos com baixa visão!
+                      <div className="p-4 text-sm text-slate-600 text-justify">
+                        <strong className="block text-slate-800 mb-1 text-base">Dica Extra: Multimaterial (Cores)</strong>
+                        Possui uma máquina multicolorida (Bambu Lab A1/P1S combo, Creality K1C, Anycubic Kobra 3)? Você pode pintar os pontos Braille de outra cor usando a ferramenta do próprio fatiador. Isso gera um excelente contraste e ajuda incrivelmente alunos com baixa visão ou professores com visão regular!
                       </div>
                     </div>
 
                   </div>
                 </div>
                 
-                <div className="space-y-2 text-xs sm:text-sm bg-white/60 p-4 rounded border border-slate-200/60 mt-4 shadow-sm">
+                <div className="space-y-2 text-xs sm:text-sm bg-white/60 p-4 rounded border border-slate-200/60 mt-4 shadow-sm text-justify">
                   <p><strong>Por que NÃO imprimir a peça deitada de barriga na mesa?</strong></p>
-                  <p>Se a placa for impressa deitada horizontalmente, a ponta esférica de cada pontinho do Braille será fatiada em "degraus" por causa do empilhamento do eixo Z (efeito escada / <em>staircasing</em>). Esses micrômetros de plástico serrilhado deixam o Braille extremamente áspero e desconfortável, podendo até arranhar e machucar gravemente as pontas dos dedos da pessoa cega após minutos de leitura contínua.</p>
+                  <p>Se a placa for impressa deitada horizontalmente, a ponta esférica de cada pontinho do Braille será fatiada em "degraus" por causa do empilhamento do eixo Z da impressora (conhecido como efeito escada ou <em>staircasing</em>). Esses micrômetros de plástico serrilhado deixam a superfície do Braille extremamente áspera e desconfortável, podendo até arranhar e machucar as pontas dos dedos da pessoa cega após minutos de leitura contínua.</p>
                   <hr className="my-2 border-slate-200" />
-                  <p><strong>A vantagem de imprimir EM PÉ:</strong></p>
-                  <p>Na vertical, os motores X e Y desenham perfeitamente o arco contínuo das bolinhas. A extrusora faz movimentos arredondados contínuos e sobe suavemente. O resultado são semiesferas perfeitamente lisas, sedosas ao toque, e que garantem 100% de conforto na leitura tátil.</p>
+                  <p><strong>A vantagem absoluta de imprimir EM PÉ:</strong></p>
+                  <p>Na vertical, os motores dos eixos X e Y desenham perfeitamente o arco contínuo e orgânico das bolinhas laterais. A extrusora faz movimentos arredondados contínuos e sobe de forma muito mais suave. O resultado final são semiesferas perfeitamente lisas, sedosas ao toque, e que garantem 100% de conforto e segurança na leitura tátil.</p>
                 </div>
 
-                <div className="pt-2 text-sm sm:text-base text-slate-700">
-                  <h4 className="font-bold mb-1">Qual software fatiador devo utilizar?</h4>
-                  <p>Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download gratuito do <strong>OrcaSlicer</strong>. É a ferramenta de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e calibrados para praticamente todas as marcas do mercado.</p>
-                  <a href="https://github.com/SoftFever/OrcaSlicer/releases" target="_blank" rel="noopener noreferrer" className="inline-flex mt-3 items-center px-4 py-2 font-bold text-white rounded shadow-sm hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
-                    <Download className="w-4 h-4 mr-2" /> Baixar OrcaSlicer (GitHub)
+                <div className="pt-4 text-sm sm:text-base text-slate-700">
+                  <h4 className="font-bold mb-1">Ainda não possui um software fatiador?</h4>
+                  <p className="text-justify mb-4">Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download gratuito do <strong>OrcaSlicer</strong>. É a ferramenta de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e perfeitamente calibrados para praticamente todas as marcas do mercado.</p>
+                  <a href="https://www.orcaslicer.com/download/" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
+                    <Download className="w-5 h-5 mr-2" /> Baixar OrcaSlicer Oficial
                   </a>
                 </div>
               </div>
@@ -1567,7 +1632,7 @@ export default function App() {
             style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}
           >
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
-            <p>Área reservada para documentações futuras.</p>
+            <p className="text-justify">Área reservada para documentações futuras.</p>
           </div>
         )}
 
