@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
-import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info, Heart, Layers, PlusCircle, MinusCircle, Eye } from 'lucide-react';
+import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info, Heart, Layers, Eye, EyeOff } from 'lucide-react';
 import { gerarModeloJSCAD, geradorBlocoIonicoJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
 
 import * as THREE from 'three';
@@ -45,18 +45,31 @@ const GithubIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" wi
 const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>;
 const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
-const StlModel = ({ url, cor }) => {
+// =========================================================
+// RENDERIZADOR 3D COM EXTRATOR DE DIMENSÕES
+// =========================================================
+const StlModel = ({ url, cor, onDimensionsParsed }) => {
   const originalGeom = useLoader(STLLoader, url);
   const geom = useMemo(() => {
     const clonedGeom = originalGeom.clone();
     clonedGeom.computeBoundingBox();
     const box = clonedGeom.boundingBox;
+    
+    // Calcula as dimensões e envia para a UI
+    const sizeX = Math.abs(box.max.x - box.min.x);
+    const sizeY = Math.abs(box.max.y - box.min.y);
+    const sizeZ = Math.abs(box.max.z - box.min.z);
+    if (onDimensionsParsed) {
+      onDimensionsParsed({ x: sizeX.toFixed(1), y: sizeY.toFixed(1), z: sizeZ.toFixed(1) });
+    }
+
+    // Centraliza
     const centerX = (box.max.x + box.min.x) / 2;
     const centerZ = (box.max.z + box.min.z) / 2;
     clonedGeom.translate(-centerX, -box.min.y, -centerZ);
     clonedGeom.computeBoundingBox();    
     return clonedGeom;
-  }, [originalGeom]);
+  }, [originalGeom, onDimensionsParsed]);
 
   return (
     <mesh geometry={geom} castShadow receiveShadow position={[0, 0, 0]}>
@@ -130,16 +143,36 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
 
 const getTheme = (idOrHex) => {
   const predefined = {
-    '#0e52c2': { cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8', btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logo: logoAzul, textoSubCaixa: '#1e293b' },
-    '#1a8441': { cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194', btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logo: logoVerde, textoSubCaixa: '#1e293b' },
-    '#511576': { cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da', btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd', textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658', textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logo: logoRoxo, textoSubCaixa: '#000000' },
-    '#db2777': { cabecalho: '#ffffff', abaNormal: '#db2777', abaAtiva: '#be185d', fundoPrincipal: '#f4a6c8', btnVisualizar: '#db2777', btnBaixar: '#059669', fundoCaixa: '#fdf2f8', fundoSubCaixa: '#fce7f3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#db2777', logo: logoRosa, textoSubCaixa: '#1e293b' },
-    '#dc2626': { cabecalho: '#ffffff', abaNormal: '#dc2626', abaAtiva: '#b91c1c', fundoPrincipal: '#f19e9e', btnVisualizar: '#dc2626', btnBaixar: '#059669', fundoCaixa: '#fef2f2', fundoSubCaixa: '#fee2e2', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#dc2626', logo: logoVermelho, textoSubCaixa: '#1e293b' },
-    '#ea580c': { cabecalho: '#ffffff', abaNormal: '#ea580c', abaAtiva: '#c2410c', fundoPrincipal: '#f8bd9d', btnVisualizar: '#ea580c', btnBaixar: '#059669', fundoCaixa: '#fff7ed', fundoSubCaixa: '#ffedd5', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ea580c', logo: logoLaranja, textoSubCaixa: '#1e293b' },
-    '#ca8a04': { cabecalho: '#ffffff', abaNormal: '#ca8a04', abaAtiva: '#a16207', fundoPrincipal: '#f7dfa4', btnVisualizar: '#ca8a04', btnBaixar: '#059669', fundoCaixa: '#fefce8', fundoSubCaixa: '#fef9c3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ca8a04', logo: logoAmarelo, textoSubCaixa: '#1e293b' }
+    '#0e52c2': { nome: 'Azul', hex: '#0e52c2', cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8', btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logo: logoAzul, textoSubCaixa: '#1e293b' },
+    '#1a8441': { nome: 'Verde', hex: '#1a8441', cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194', btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logo: logoVerde, textoSubCaixa: '#1e293b' },
+    '#511576': { nome: 'Roxo', hex: '#511576', cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da', btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd', textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658', textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logo: logoRoxo, textoSubCaixa: '#000000' },
+    '#db2777': { nome: 'Rosa', hex: '#db2777', cabecalho: '#ffffff', abaNormal: '#db2777', abaAtiva: '#be185d', fundoPrincipal: '#f4a6c8', btnVisualizar: '#db2777', btnBaixar: '#059669', fundoCaixa: '#fdf2f8', fundoSubCaixa: '#fce7f3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#db2777', logo: logoRosa, textoSubCaixa: '#1e293b' },
+    '#dc2626': { nome: 'Vermelho', hex: '#dc2626', cabecalho: '#ffffff', abaNormal: '#dc2626', abaAtiva: '#b91c1c', fundoPrincipal: '#f19e9e', btnVisualizar: '#dc2626', btnBaixar: '#059669', fundoCaixa: '#fef2f2', fundoSubCaixa: '#fee2e2', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#dc2626', logo: logoVermelho, textoSubCaixa: '#1e293b' },
+    '#ea580c': { nome: 'Laranja', hex: '#ea580c', cabecalho: '#ffffff', abaNormal: '#ea580c', abaAtiva: '#c2410c', fundoPrincipal: '#f8bd9d', btnVisualizar: '#ea580c', btnBaixar: '#059669', fundoCaixa: '#fff7ed', fundoSubCaixa: '#ffedd5', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ea580c', logo: logoLaranja, textoSubCaixa: '#1e293b' },
+    '#ca8a04': { nome: 'Amarelo', hex: '#ca8a04', cabecalho: '#ffffff', abaNormal: '#ca8a04', abaAtiva: '#a16207', fundoPrincipal: '#f7dfa4', btnVisualizar: '#ca8a04', btnBaixar: '#059669', fundoCaixa: '#fefce8', fundoSubCaixa: '#fef9c3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ca8a04', logo: logoAmarelo, textoSubCaixa: '#1e293b' }
   };
   if (predefined[idOrHex]) return { corPrincipal: idOrHex, ...predefined[idOrHex] };
-  return { corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`, btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logo: logoPrincipal, textoSubCaixa: '#1e293b' };
+  return { corPrincipal: idOrHex, nome: 'Custom', cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`, btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logo: logoPrincipal, textoSubCaixa: '#1e293b' };
+};
+
+// =========================================================================
+// Lógica Automática de Cores dos Íons Baseado no Tema
+// =========================================================================
+const getIonColorBasedOnTheme = (themeHex, ionType) => {
+  const map = {
+    '#0e52c2': { cation: '#0e52c2', anion: '#dc2626' }, // Azul -> Cat Azul, An Vermelho
+    '#511576': { cation: '#1a8441', anion: '#511576' }, // Roxo -> Cat Verde, An Roxo
+    '#1a8441': { cation: '#1a8441', anion: '#ea580c' }, // Verde -> Cat Verde, An Laranja
+    '#dc2626': { cation: '#0e52c2', anion: '#dc2626' }, // Vermelho -> Cat Azul, An Vermelho
+    '#ea580c': { cation: '#1a8441', anion: '#ea580c' }, // Laranja -> Cat Verde, An Laranja
+    '#ca8a04': { cation: '#ca8a04', anion: '#ff4500' }, // Amarelo -> Cat Amarelo, An Laranja-Avermelhado
+    '#db2777': { cation: '#db2777', anion: '#a855f7' }  // Rosa -> Cat Rosa, An Lilas
+  };
+  if (map[themeHex]) {
+    return map[themeHex][ionType];
+  }
+  // Fallback padrão se for cor customizada
+  return ionType === 'cation' ? '#0e52c2' : '#dc2626';
 };
 
 const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
@@ -230,6 +263,11 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
+  
+  // Controle de exibição de dimensões XYZ
+  const [dimensoesGerador, setDimensoesGerador] = useState(null);
+  const [mostrarDimensoesGerador, setMostrarDimensoesGerador] = useState(true);
+
   const [copiado, setCopiado] = useState(false);
   const [pixCopiado, setPixCopiado] = useState(false);
   const [brailleInput, setBrailleInput] = useState('');
@@ -240,23 +278,32 @@ export default function App() {
 
   // ESTADOS DA NOVA ABA: BLOCOS IÔNICOS
   const [ionConfig, setIonConfig] = useState({
-    tipo: 'cation',      // 'cation' | 'anion'
-    valencia: 1,         // 1 a 4
-    largura: 65,
-    altura: 40,
-    espessura: 6,
-    tamanhoEncaixe: 8,
-    formula: 'H₃O⁺',
+    tipo: 'cation',
+    valencia: 1,
+    largura: 55.9,
+    altura: 25.0,     // Altura Base (multiplica pela valência)
+    espessura: 5.0,
+    larguraEncaixe: 9.1,
+    alturaEncaixe: 11.0,
+    formula: 'H⁺',
     espessuraTexto: 1.0,
-    fonte: 'sans',       // sans, serif, mono
+    fonte: 'sans',
     incluirBraille: false,
-    corModelo: corPrincipal
+    corModelo: getIonColorBasedOnTheme(corPrincipal, 'cation'),
+    corCustomizada: false // flag para saber se o usuario mudou a cor a mão
   });
+  
   const [ionStlUrl, setIonStlUrl] = useState(null);
   const [isGeneratingIon, setIsGeneratingIon] = useState(false);
+  const [dimensoesIonico, setDimensoesIonico] = useState(null);
+  const [mostrarDimensoesIonico, setMostrarDimensoesIonico] = useState(true);
 
-  // Sincroniza cor inicial do bloco iônico com o tema se não alterada
-  useEffect(() => { setIonConfig(prev => ({ ...prev, corModelo: corPrincipal })); }, [corPrincipal]);
+  // Efeito para sincronizar cores automáticas ao trocar de tema ou tipo de íon (se o usuário não fixou uma cor customizada)
+  useEffect(() => {
+    if (!ionConfig.corCustomizada) {
+      setIonConfig(prev => ({ ...prev, corModelo: getIonColorBasedOnTheme(corPrincipal, prev.tipo) }));
+    }
+  }, [corPrincipal, ionConfig.tipo]);
 
   const sugestaoQuimica = checarSugestaoQuimica(input);
   const handleAplicarSugestao = (novaFormula) => { setInput(novaFormula); parseBraille(novaFormula); };
@@ -308,7 +355,7 @@ export default function App() {
     e.preventDefault();
     const blocosGerados = parseBraille(input);
     if (!blocosGerados || blocosGerados.length === 0) return;
-    setIsGenerating(true); setStlUrl(null); 
+    setIsGenerating(true); setStlUrl(null); setDimensoesGerador(null);
     await new Promise(resolve => setTimeout(resolve, 50));
     try {
       const modelo3D = gerarModeloJSCAD(blocosGerados, config3D);
@@ -317,14 +364,12 @@ export default function App() {
     finally { setIsGenerating(false); }
   };
 
-  // GERAÇÃO DO BLOCO IÔNICO
   const handleGenerateIon = async (e) => {
     e.preventDefault();
     setIsGeneratingIon(true);
-    setIonStlUrl(null);
+    setIonStlUrl(null); setDimensoesIonico(null);
     await new Promise(resolve => setTimeout(resolve, 50));
     try {
-      // Se houver Braille, fazemos o parse na string de fórmula e passamos
       const brailleGerado = ionConfig.incluirBraille ? parseBraille(ionConfig.formula) : [];
       const modeloIon = geradorBlocoIonicoJSCAD({ ...ionConfig, cellsBraille: brailleGerado });
       setIonStlUrl(gerarUrlSTL(modeloIon));
@@ -424,6 +469,21 @@ export default function App() {
 
   const celasFisicas = cells.filter(c => !c.isNewline);
 
+  // Box Dimensions HUD Overlay
+  const DimensionsOverlay = ({ dimensions, isVisible }) => {
+    if (!dimensions || !isVisible) return null;
+    return (
+      <div className="absolute top-4 left-4 z-10 bg-slate-900/80 backdrop-blur border border-slate-700 p-3 rounded-lg shadow-xl text-white select-none pointer-events-none transition-opacity duration-300">
+        <h4 className="text-xs font-bold text-slate-400 mb-1 uppercase tracking-wider">Dimensões Totais</h4>
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <div><span className="block text-[10px] text-red-400">X (Larg)</span><span className="font-mono font-bold text-sm">{dimensions.x}<span className="text-[10px] ml-0.5">mm</span></span></div>
+          <div><span className="block text-[10px] text-green-400">Y (Alt)</span><span className="font-mono font-bold text-sm">{dimensions.y}<span className="text-[10px] ml-0.5">mm</span></span></div>
+          <div><span className="block text-[10px] text-blue-400">Z (Esp)</span><span className="font-mono font-bold text-sm">{dimensions.z}<span className="text-[10px] ml-0.5">mm</span></span></div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col min-h-screen font-sans text-slate-800 transition-colors duration-500" style={{ backgroundColor: theme.fundoPrincipal }}>
       <header className="pt-6 pb-6 sm:pt-10 sm:pb-8 px-4 sm:px-6 z-10 relative transition-colors duration-500 shadow-sm" style={{ backgroundColor: theme.cabecalho }}>
@@ -496,14 +556,14 @@ export default function App() {
                   </button>
                   {showAdvanced && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50/50 p-5 rounded-lg border border-slate-200">
-                      <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: e.target.value})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: e.target.value})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                     </div>
                   )}
                 </div>
@@ -513,24 +573,34 @@ export default function App() {
             {stlUrl && (
               <div className="p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col" style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}>
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-bold text-slate-800 flex items-center"><Box className="w-5 h-5 mr-2 text-slate-500" />Pré-visualização do Modelo 3D</h2>
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-bold text-slate-800 flex items-center"><Box className="w-5 h-5 mr-2 text-slate-500" />Pré-visualização do Modelo 3D</h2>
+                    <button onClick={() => setMostrarDimensoesGerador(!mostrarDimensoesGerador)} className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs font-semibold border border-slate-200 transition-colors">
+                      {mostrarDimensoesGerador ? <><EyeOff className="w-3.5 h-3.5"/> Ocultar Dimensões</> : <><Eye className="w-3.5 h-3.5"/> Mostrar Dimensões</>}
+                    </button>
+                  </div>
                   <button onClick={() => handleDownload(stlUrl, "MatrizBraille")} className="px-4 py-2 font-medium rounded-md shadow-sm transition-colors flex items-center space-x-2 hover:opacity-90" style={{ backgroundColor: theme.btnBaixar, color: theme.textoBtnBaixar, border: `2px solid ${theme.borderBtnBaixar}` }}>
                     <Download className="w-4 h-4" /><span>Baixar Arquivo STL</span>
                   </button>
                 </div>
-                <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
+                <div className="w-full h-[350px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move" onDoubleClick={() => setMostrarDimensoesGerador(!mostrarDimensoesGerador)}>
+                  
+                  <DimensionsOverlay dimensions={dimensoesGerador} isVisible={mostrarDimensoesGerador} />
+
                   <button onClick={() => setAutoRotate(!autoRotate)} className="absolute top-4 right-4 z-10 p-1 rounded-full shadow-lg transition-all" style={autoRotate ? { backgroundColor: theme.corPrincipal, border: `2px solid ${theme.corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}>
                     <img src={iconeRotacao} alt="" className="w-12 h-12 rounded-full object-cover" />
                   </button>
                   <Canvas shadows camera={{ position: [0, 50, 100], fov: 45 }}>
                     <Suspense fallback={null}>
                       <Environment preset="city" /><ambientLight intensity={0.5} /><directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
-                      <Bounds fit clip observe margin={1.2}><StlModel url={stlUrl} cor={theme.corPrincipal} /></Bounds>
+                      <Bounds fit clip observe margin={1.2}>
+                        <StlModel url={stlUrl} cor={theme.corPrincipal} onDimensionsParsed={setDimensoesGerador} />
+                      </Bounds>
                     </Suspense>
                     <axesHelper args={[30]} /><gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
                     <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
                   </Canvas>
-                  <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">Arraste para girar • Role o mouse para aproximar</p>
+                  <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">Arraste para girar • Role para aproximar • 2 cliques para ocultar dimensões</p>
                 </div>
               </div>
             )}
@@ -583,14 +653,14 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900">Gerador Didático: Blocos Iônicos com Encaixes</h2>
-                  <p className="text-slate-600 text-sm mt-1 text-justify">Crie peças de quebra-cabeça 3D para ensinar ligações iônicas, estequiometria e valência. Cátions possuem encaixes machos positivos (+) para a direita e Ânions possuem fêmeas negativas (-) para a esquerda. Respeite as regras de sobreescrito e subescrito da sua fórmula abaixo.</p>
+                  <p className="text-slate-600 text-sm mt-1 text-justify">Crie peças de quebra-cabeça 3D para ensinar ligações iônicas. Cátions possuem encaixes machos na extremidade direita. Ânions possuem cortes fêmeas na extremidade esquerda para receber esses machos perfeitamente. A altura do bloco multiplica dependendo da valência (ex: bloco +2 tem o dobro da altura base).</p>
                 </div>
                 <ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} />
               </div>
 
               <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center gap-2">
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <span><strong>Observação de Formatação:</strong> Para que a fórmula química saia perfeita no bloco, digite ou cole utilizando números sobrescritos (⁺, ⁻, ¹, ², ³, ⁴, ⁵, ⁶) e subscritos (₁, ₂, ₃, ₄, ₅, ₆). Exemplo: <strong>SO₄²⁻</strong> ou <strong>H₃O⁺</strong>. O texto será centralizado e dimensionado de forma automática!</span>
+                <span><strong>Formatação do Texto:</strong> Para que a química fique correta no bloco, utilize números sobrescritos e subscritos padrões Unicode. Exemplo: <strong>SO₄²⁻</strong> ou <strong>H⁺</strong>. O sistema reconhece e formata os tamanhos vetorizados.</span>
               </div>
             </div>
 
@@ -604,21 +674,35 @@ export default function App() {
                     {[1, 2, 3, 4].map((val) => (
                       <button
                         key={`cat-${val}`} type="button"
-                        onClick={() => setIonConfig({ ...ionConfig, tipo: 'cation', valencia: val })}
+                        onClick={() => {
+                          setIonConfig(prev => ({ 
+                            ...prev, 
+                            tipo: 'cation', 
+                            valencia: val, 
+                            corModelo: prev.corCustomizada ? prev.corModelo : getIonColorBasedOnTheme(corPrincipal, 'cation') 
+                          }));
+                        }}
                         className={`p-3 rounded-lg border-2 font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${ionConfig.tipo === 'cation' && ionConfig.valencia === val ? 'bg-blue-600 text-white border-blue-700 shadow-md transform scale-105' : 'bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100'}`}
                       >
                         <span className="text-lg">Cátion +{val}</span>
-                        <span className="text-xs font-normal opacity-80">Encaixe Positivo (Macho)</span>
+                        <span className="text-xs font-normal opacity-80">Macho (Direita)</span>
                       </button>
                     ))}
                     {[1, 2, 3, 4].map((val) => (
                       <button
                         key={`an-${val}`} type="button"
-                        onClick={() => setIonConfig({ ...ionConfig, tipo: 'anion', valencia: val })}
+                        onClick={() => {
+                          setIonConfig(prev => ({ 
+                            ...prev, 
+                            tipo: 'anion', 
+                            valencia: val, 
+                            corModelo: prev.corCustomizada ? prev.corModelo : getIonColorBasedOnTheme(corPrincipal, 'anion') 
+                          }));
+                        }}
                         className={`p-3 rounded-lg border-2 font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${ionConfig.tipo === 'anion' && ionConfig.valencia === val ? 'bg-red-600 text-white border-red-700 shadow-md transform scale-105' : 'bg-red-50 text-red-900 border-red-200 hover:bg-red-100'}`}
                       >
                         <span className="text-lg">Ânion -{val}</span>
-                        <span className="text-xs font-normal opacity-80">Encaixe Negativo (Fêmea)</span>
+                        <span className="text-xs font-normal opacity-80">Fêmea (Esquerda)</span>
                       </button>
                     ))}
                   </div>
@@ -633,32 +717,45 @@ export default function App() {
                       onChange={(e) => setIonConfig({ ...ionConfig, formula: e.target.value })}
                       className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-400 outline-none text-xl font-mono"
                       style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
-                      placeholder="Ex: SO₄²⁻ ou H₃O⁺"
+                      placeholder="Ex: H⁺ ou Ca²⁺"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-slate-700 mb-1">Fonte do Texto no Bloco</label>
                     <select
                       value={ionConfig.fonte} onChange={(e) => setIonConfig({ ...ionConfig, fonte: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 outline-none font-medium text-base bg-white cursor-pointer"
+                      className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 outline-none font-medium text-sm bg-white cursor-pointer"
                       style={{ backgroundColor: theme.fundoSubCaixa, color: theme.textoSubCaixa }}
                     >
-                      <option value="sans">Sans-Serif (Moderna / Limpa - Recomendado para Impressão 3D)</option>
-                      <option value="serif">Serif (Clássica Acadêmica)</option>
-                      <option value="mono">Monospace (Espaçamento Técnico Uniforme)</option>
+                      {/* O JSCAD por padrão converte em vetor generico, mas deixamos as opções de UI como solciitado */}
+                      <option value="sans">Modern Sans-Serif (Padrão 3D)</option>
+                      <option value="serif">Academic Serif Clássica</option>
+                      <option value="mono">Technical Monospace</option>
+                      <option value="arial">Arial Black</option>
+                      <option value="himalaya">Microsoft Himalaya</option>
+                      <option value="helvetica">Helvetica</option>
+                      <option value="times">Times New Roman</option>
+                      <option value="courier">Courier New</option>
+                      <option value="verdana">Verdana</option>
+                      <option value="georgia">Georgia</option>
+                      <option value="tahoma">Tahoma</option>
+                      <option value="comic">Comic Sans MS</option>
+                      <option value="impact">Impact</option>
                     </select>
                   </div>
                 </div>
 
                 {/* 3. Dimensões do Bloco e Encaixes */}
                 <div className="pt-4 border-t border-slate-200">
-                  <label className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">3. Dimensões Físicas (Tamanho da Peça e Encaixes)</label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
-                    <ConfigSlider label="Largura do Bloco (X)" value={ionConfig.largura} min="40" max="120" step="5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, largura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Altura do Bloco (Y)" value={ionConfig.altura} min="30" max="80" step="5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, altura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Espessura da Placa (Z)" value={ionConfig.espessura} min="2" max="15" step="1" unit="mm" onChange={(e) => setIonConfig({...ionConfig, espessura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Tamanho do Encaixe" value={ionConfig.tamanhoEncaixe} min="4" max="15" step="1" unit="mm" onChange={(e) => setIonConfig({...ionConfig, tamanhoEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                  <label className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">3. Dimensões Físicas</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                    <ConfigSlider label="Larg. Base (X)" value={ionConfig.largura} min="30.0" max="100.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, largura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label={`Alt. Base (por carga) (Y)`} value={ionConfig.altura} min="15.0" max="50.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, altura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Espessura (Z)" value={ionConfig.espessura} min="2.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, espessura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Largura Encaixe" value={ionConfig.larguraEncaixe} min="4.0" max="20.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, larguraEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Altura Encaixe" value={ionConfig.alturaEncaixe} min="4.0" max="25.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, alturaEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                   </div>
+                  <p className="text-xs text-slate-500 mt-2 text-right">Altura Total = {ionConfig.altura} x {ionConfig.valencia} = {(ionConfig.altura * ionConfig.valencia).toFixed(1)}mm</p>
                 </div>
 
                 {/* 4. Espessura do Texto e Adição de Braille */}
@@ -666,19 +763,19 @@ export default function App() {
                   <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                     <ConfigSlider
                       label="Espessura do Texto / Relevo"
-                      value={ionConfig.espessuraTexto} min="-2.0" max="2.0" step="0.2" unit="mm"
+                      value={ionConfig.espessuraTexto} min="-2.0" max="2.0" step="0.5" unit="mm"
                       onChange={(e) => setIonConfig({...ionConfig, espessuraTexto: parseFloat(e.target.value)})}
                       cor={ionConfig.espessuraTexto < 0 ? '#dc2626' : theme.corPrincipal}
                     />
                     <span className="text-xs text-slate-500 block mt-1">
-                      {ionConfig.espessuraTexto < 0 ? '⚠️ Valor negativo selecionado: O texto será ESCAVADO ("cut negativo") para dentro da peça.' : '✨ Valor positivo: O texto ficará em RELEVO para fora da peça.'}
+                      {ionConfig.espessuraTexto < 0 ? '⚠️ Texto Escavado (-) para dentro da peça.' : '✨ Texto em Relevo (+) para fora da peça.'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 h-full">
                     <div>
-                      <span className="font-bold text-slate-800 block">Adicionar Escrita Braille no Bloco?</span>
-                      <span className="text-xs text-slate-500">Gera a tradução tátil logo abaixo da fórmula centralizada.</span>
+                      <span className="font-bold text-slate-800 block">Adicionar Escrita Braille?</span>
+                      <span className="text-xs text-slate-500">Gera a tradução tátil no bloco (centralizado automaticamente).</span>
                     </div>
                     <input
                       type="checkbox" checked={ionConfig.incluirBraille}
@@ -693,10 +790,10 @@ export default function App() {
                   <button
                     type="submit" disabled={isGeneratingIon}
                     className={`w-full py-4 text-white font-bold text-lg rounded-lg shadow-md transition-all flex items-center justify-center space-x-2 ${isGeneratingIon ? 'bg-slate-400 cursor-not-allowed' : 'hover:opacity-95'}`}
-                    style={!isGeneratingIon ? { backgroundColor: ionConfig.tipo === 'cation' ? '#0e52c2' : '#dc2626' } : {}}
+                    style={!isGeneratingIon ? { backgroundColor: theme.corPrincipal } : {}}
                   >
                     <Layers className={`w-6 h-6 ${isGeneratingIon ? 'animate-spin' : ''}`} />
-                    <span>{isGeneratingIon ? 'Modelando Encaixes e Vetores 3D...' : `Visualizar STL do Bloco Iônico (${ionConfig.tipo === 'cation' ? 'Cátion Positivo' : 'Ânion Negativo'})`}</span>
+                    <span>{isGeneratingIon ? 'Modelando Blocos e Vetores...' : `Visualizar STL (Íon ${ionConfig.tipo === 'cation' ? '+' : '-'}${ionConfig.valencia})`}</span>
                   </button>
                 </div>
 
@@ -708,12 +805,16 @@ export default function App() {
               <div className="p-6 rounded-xl shadow-sm transition-colors duration-500 flex flex-col fade-in" style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
                   <div className="flex items-center gap-3">
-                    <h2 className="text-lg font-bold text-slate-800 flex items-center"><Box className="w-5 h-5 mr-2 text-slate-500" />Pré-visualização e Cores do Bloco Iônico</h2>
-                    {/* Seletor de Cor RGB Livre do Modelo 3D */}
+                    <h2 className="text-lg font-bold text-slate-800 flex items-center"><Box className="w-5 h-5 mr-2 text-slate-500" />Pré-visualização 3D</h2>
+                    
+                    <button onClick={() => setMostrarDimensoesIonico(!mostrarDimensoesIonico)} className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-xs font-semibold border border-slate-200 transition-colors">
+                      {mostrarDimensoesIonico ? <><EyeOff className="w-3.5 h-3.5"/> Ocultar Dimensões</> : <><Eye className="w-3.5 h-3.5"/> Mostrar Dimensões</>}
+                    </button>
+
                     <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
                       <Palette className="w-4 h-4 text-slate-600" />
-                      <span className="text-xs font-semibold text-slate-700">Cor do Modelo:</span>
-                      <input type="color" value={ionConfig.corModelo} onChange={(e) => setIonConfig({ ...ionConfig, corModelo: e.target.value })} className="w-6 h-6 rounded border-0 cursor-pointer p-0" title="Mudar cor de visualização da malha (RGB Livre)" />
+                      <span className="text-xs font-semibold text-slate-700 hidden sm:inline">Cor (RGB):</span>
+                      <input type="color" value={ionConfig.corModelo} onChange={(e) => setIonConfig({ ...ionConfig, corModelo: e.target.value, corCustomizada: true })} className="w-6 h-6 rounded border-0 cursor-pointer p-0" title="Mudar cor do bloco livremente" />
                     </div>
                   </div>
 
@@ -722,19 +823,24 @@ export default function App() {
                   </button>
                 </div>
 
-                <div className="w-full h-[400px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move">
+                <div className="w-full h-[450px] bg-slate-900 rounded-lg overflow-hidden relative cursor-move" onDoubleClick={() => setMostrarDimensoesIonico(!mostrarDimensoesIonico)}>
+                  
+                  <DimensionsOverlay dimensions={dimensoesIonico} isVisible={mostrarDimensoesIonico} />
+
                   <button onClick={() => setAutoRotate(!autoRotate)} className="absolute top-4 right-4 z-10 p-1.5 rounded-full shadow-lg transition-all" style={autoRotate ? { backgroundColor: theme.corPrincipal, border: `2px solid ${theme.corPrincipal}` } : { backgroundColor: 'rgba(51, 65, 85, 0.8)' }}>
                     <img src={iconeRotacao} alt="" className="w-10 h-10 rounded-full object-cover" />
                   </button>
                   <Canvas shadows camera={{ position: [0, 60, 110], fov: 45 }}>
                     <Suspense fallback={null}>
                       <Environment preset="city" /><ambientLight intensity={0.6} /><directionalLight position={[10, 20, 10]} intensity={1.5} castShadow />
-                      <Bounds fit clip observe margin={1.3}><StlModel url={ionStlUrl} cor={ionConfig.corModelo} /></Bounds>
+                      <Bounds fit clip observe margin={1.3}>
+                        <StlModel url={ionStlUrl} cor={ionConfig.corModelo} onDimensionsParsed={setDimensoesIonico} />
+                      </Bounds>
                     </Suspense>
                     <axesHelper args={[30]} /><gridHelper args={[200, 20, '#94a3b8', '#475569']} position={[0, 0, 0]} />
                     <OrbitControls autoRotate={autoRotate} autoRotateSpeed={2.0} makeDefault enablePan={true} enableZoom={true} />
                   </Canvas>
-                  <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">Gire a peça para inspecionar os pinos e rasgados machos/fêmeas das ligações iônicas</p>
+                  <p className="absolute bottom-3 left-0 w-full text-center text-xs text-slate-300 font-medium pointer-events-none drop-shadow-md">Gire a peça para inspecionar os pinos e rasgos • 2 cliques para ocultar dimensões XYZ</p>
                 </div>
               </div>
             )}
