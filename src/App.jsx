@@ -590,7 +590,7 @@ export default function App() {
 
               <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center gap-2">
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <span><strong>Observação de Formatação:</strong> Para que a fórmula química saia perfeita no bloco, digite ou cole utilizando números sobrescritos (⁺, ⁻, ¹, ², ³) e subscritos (₁, ₂, ₃, ₄). Exemplo: <strong>SO₄²⁻</strong> ou <strong>H₃O⁺</strong>. O texto será centralizado e dimensionado de forma automática!</span>
+                <span><strong>Observação de Formatação:</strong> Para que a fórmula química saia perfeita no bloco, digite ou cole utilizando números sobrescritos (⁺, ⁻, ¹, ², ³, ⁴, ⁵, ⁶) e subscritos (₁, ₂, ₃, ₄, ₅, ₆). Exemplo: <strong>SO₄²⁻</strong> ou <strong>H₃O⁺</strong>. O texto será centralizado e dimensionado de forma automática!</span>
               </div>
             </div>
 
