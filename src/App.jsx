@@ -1,294 +1,3 @@
-import { primitives, transforms, booleans, text, hulls } from '@jscad/modeling';
-import { serialize } from '@jscad/stl-serializer';
-
-const { cuboid, roundedCuboid, sphere, cylinder } = primitives;
-const { translate } = transforms;
-const { union, subtract } = booleans;
-const { vectorText } = text;
-const { hull } = hulls;
-
-function calcularRaioEsfera(diametroBase, alturaCalota) {
-  const raioBase = diametroBase / 2.0;
-  return (Math.pow(raioBase, 2) + Math.pow(alturaCalota, 2)) / (2 * alturaCalota);
-}
-
-// ============================================================================
-// GERADOR ORIGINAL (MANTIDO INTACTO)
-// ============================================================================
-export function gerarModeloJSCAD(cells, config = {}) {
-  if (!cells || cells.length === 0) return null;
-
-  const ALTURA_PONTO = config.alturaPonto !== undefined ? parseFloat(config.alturaPonto) : 0.75;
-  const DIAMETRO_PONTO = config.diametroPonto !== undefined ? parseFloat(config.diametroPonto) : 1.9;
-  const ESPESSURA_PLACA = config.espessuraPlaca !== undefined ? parseFloat(config.espessuraPlaca) : 5.0;
-  const DIST_PONTOS_X = config.distPontos !== undefined ? parseFloat(config.distPontos) : 2.5;
-  const DIST_PONTOS_Y = config.distPontos !== undefined ? parseFloat(config.distPontos) : 2.5;
-  const DIST_CELAS = config.distCelas !== undefined ? parseFloat(config.distCelas) : 6.0;
-  const DIST_LINHAS = config.distLinhas !== undefined ? parseFloat(config.distLinhas) : 10.0;
-  const MARGEM = config.margem !== undefined ? parseFloat(config.margem) : 2.0;
-  const RAIO_BORDA = config.borda !== undefined ? parseFloat(config.borda) : 0.0;
-
-  const COORDS_PONTO = {
-    1: [0, 2 * DIST_PONTOS_Y],
-    2: [0, DIST_PONTOS_Y],
-    3: [0, 0],
-    4: [DIST_PONTOS_X, 2 * DIST_PONTOS_Y],
-    5: [DIST_PONTOS_X, DIST_PONTOS_Y],
-    6: [DIST_PONTOS_X, 0]
-  };
-
-  const raioEsfera = calcularRaioEsfera(DIAMETRO_PONTO, ALTURA_PONTO);
-  
-  let zOffset;
-  if (ESPESSURA_PLACA > 0) {
-    zOffset = ESPESSURA_PLACA - (raioEsfera - ALTURA_PONTO);
-  } else {
-    zOffset = raioEsfera; 
-  }
-
-  let maxCols = 0;
-  let currentCol = 0;
-  let numLines = 1;
-
-  cells.forEach(cell => {
-    if (cell.isNewline) {
-      numLines++;
-      currentCol = 0;
-    } else {
-      currentCol++;
-      if (currentCol > maxCols) maxCols = currentCol;
-    }
-  });
-
-  const textoW = maxCols > 0 ? ((maxCols - 1) * DIST_CELAS) + DIST_PONTOS_X : 0;
-  const textoH = ((numLines - 1) * DIST_LINHAS) + (2 * DIST_PONTOS_Y);
-
-  const comprimentoPlaca = textoW + (2 * MARGEM);
-  const larguraPlaca = textoH + (2 * MARGEM);
-
-  let placa = null;
-  if (ESPESSURA_PLACA > 0) {
-    if (RAIO_BORDA > 0) {
-        const maxRadius = Math.min(comprimentoPlaca / 2, larguraPlaca / 2, ESPESSURA_PLACA / 2) - 0.01;
-        const safeRadius = Math.min(RAIO_BORDA, maxRadius);
-        placa = roundedCuboid({ size: [comprimentoPlaca, larguraPlaca, ESPESSURA_PLACA], roundRadius: safeRadius, segments: 32 });
-    } else {
-        placa = cuboid({ size: [comprimentoPlaca, larguraPlaca, ESPESSURA_PLACA] });
-    }
-    placa = translate([comprimentoPlaca / 2, larguraPlaca / 2, ESPESSURA_PLACA / 2], placa);
-  }
-
-  const formasPontos = [];
-  let currentXIndex = 0;
-  let currentYIndex = 0;
-
-  cells.forEach((cell) => {
-    if (cell.isNewline) {
-      currentYIndex++;
-      currentXIndex = 0;
-      return;
-    }
-
-    const xOffsetCela = MARGEM + (currentXIndex * DIST_CELAS);
-    const yOffsetCela = MARGEM + ((numLines - 1 - currentYIndex) * DIST_LINHAS);
-
-    if (cell.dots && cell.dots.length > 0) {
-      cell.dots.forEach(numeroDoPonto => {
-        const [px, py] = COORDS_PONTO[numeroDoPonto];
-        let ponto = sphere({ radius: raioEsfera, segments: 32 });
-        ponto = translate([xOffsetCela + px, yOffsetCela + py, zOffset], ponto);
-        formasPontos.push(ponto);
-      });
-    }
-    currentXIndex++;
-  });
-
-  if (placa) {
-    return union(placa, ...formasPontos);
-  } else {
-    return union(...formasPontos); 
-  }
-}
-
-// ============================================================================
-// NOVO GERADOR: BLOCOS IÔNICOS
-// ============================================================================
-export function geradorBlocoIonicoJSCAD(params) {
-  const {
-    tipo = 'cation',      // 'cation' | 'anion'
-    valencia = 1,         // 1, 2, 3, 4
-    largura = 55.9,       // Largura X da placa base
-    altura = 25.0,        // Altura Y por carga
-    espessura = 5.0,      // Espessura Z da placa
-    larguraEncaixe = 9.1, // Tamanho X do pino/rasgo
-    alturaEncaixe = 11.0, // Tamanho Y do pino/rasgo
-    formula = "H+",     
-    espessuraTexto = 1.0, 
-    incluirBraille = false,
-    cellsBraille = []
-  } = params;
-
-  const qtdEncaixes = Math.min(Math.max(valencia, 1), 4);
-  const alturaTotal = altura * qtdEncaixes;
-
-  // 1. Bloco Base
-  let blocoBase = cuboid({ size: [largura, alturaTotal, espessura] });
-  blocoBase = translate([largura / 2, alturaTotal / 2, espessura / 2], blocoBase);
-
-  // 2. Encaixes (Somando na Direita ou Subtraindo na Esquerda)
-  const encaixes = [];
-  for (let i = 0; i < qtdEncaixes; i++) {
-    const posY = (i * altura) + (altura / 2);
-    
-    if (tipo === 'cation') {
-      // Macho na direita (soma)
-      let pino = cuboid({ size: [larguraEncaixe, alturaEncaixe, espessura] });
-      pino = translate([largura + (larguraEncaixe / 2) - 0.05, posY, espessura / 2], pino);
-      encaixes.push(pino);
-    } else {
-      // Fêmea na esquerda (subtrai) - com folga de 0.15mm automática
-      let buraco = cuboid({ size: [larguraEncaixe + 0.15, alturaEncaixe + 0.15, espessura + 2] });
-      buraco = translate([(larguraEncaixe / 2) - 0.05, posY, espessura / 2], buraco);
-      encaixes.push(buraco);
-    }
-  }
-
-  let malhaFinal = tipo === 'cation' ? union(blocoBase, ...encaixes) : subtract(blocoBase, ...encaixes);
-
-  // 3. Processador de Texto 3D Robusto (Usa a técnica de Hull para letras perfeitas e gordinhas)
-  const parseFormulaVetorial = (str) => {
-    const elementos = [];
-    let xOffset = 0;
-    const escalaNormal = 0.45;
-    const escalaPequena = 0.28;
-    const grossuraLinha = 1.4; 
-    const zSize = Math.abs(espessuraTexto);
-
-    for (let i = 0; i < str.length; i++) {
-      let char = str[i];
-      let isSub = /[₀-₉]/.test(char);
-      let isSup = /[⁺⁻⁰⁻⁹]/.test(char) || (i === str.length - 1 && /[+-]/.test(char));
-      let escala = (isSub || isSup) ? escalaPequena : escalaNormal;
-      let yOffset = isSub ? -3.5 : (isSup ? 4.5 : 0);
-
-      const subMap = { '₀':'0', '₁':'1', '₂':'2', '₃':'3', '₄':'4', '₅':'5', '₆':'6', '₇':'7', '₈':'8', '₉':'9' };
-      const supMap = { '⁺':'+', '⁻':'-', '⁰':'0', '¹':'1', '²':'2', '³':'3', '⁴':'4', '⁵':'5', '⁶':'6', '⁷':'7', '⁸':'8', '⁹':'9' };
-      let charClean = subMap[char] || supMap[char] || char;
-
-      let vetorChar = vectorText({ x: 0, y: 0, input: charClean });
-      
-      let hastesChar = [];
-      vetorChar.forEach(segmento => {
-        const p1 = segmento[0]; 
-        const p2 = segmento[1];
-        
-        // Cria dois cilindros nas extremidades da linha e aplica um "Hull" para conectá-los solidamente
-        let c1 = translate([p1[0]*escala + xOffset, p1[1]*escala + yOffset, 0], cylinder({ radius: grossuraLinha/2, height: zSize, segments: 16 }));
-        let c2 = translate([p2[0]*escala + xOffset, p2[1]*escala + yOffset, 0], cylinder({ radius: grossuraLinha/2, height: zSize, segments: 16 }));
-        hastesChar.push(hull(c1, c2));
-      });
-
-      if (hastesChar.length > 0) {
-        elementos.push(union(...hastesChar));
-      }
-      xOffset += (isSub || isSup) ? 6.5 : 10.5; // Avanço de cursor para a próxima letra
-    }
-    return { geometria: elementos.length > 0 ? union(...elementos) : null, larguraTotal: xOffset };
-  };
-
-  const objTexto = parseFormulaVetorial(formula);
-  let geometriaConteudo = [];
-
-  // Centro Visual da área gravável
-  const centroXVisual = tipo === 'anion' ? (largura + larguraEncaixe) / 2 : largura / 2;
-  
-  let larguraTotalConteudo = objTexto.larguraTotal;
-  let brailleW = 0;
-  
-  if (incluirBraille && cellsBraille.length > 0) {
-    brailleW = cellsBraille.length * 6.0;
-    larguraTotalConteudo = Math.max(larguraTotalConteudo, brailleW);
-  }
-
-  // Alinhamento dinâmico
-  const startX = centroXVisual - (objTexto.larguraTotal / 2);
-  const startY = incluirBraille ? (alturaTotal / 2) + 3 : (alturaTotal / 2) - 3;
-
-  if (objTexto.geometria) {
-    let zPos = espessuraTexto >= 0 ? espessura + (espessuraTexto / 2) : espessura - (Math.abs(espessuraTexto) / 2);
-    let textoAlinhado = translate([startX, startY, zPos], objTexto.geometria);
-    geometriaConteudo.push(textoAlinhado);
-  }
-
-  // 4. Adiciona Braille se ativado (centralizado e alinhado na placa)
-  if (incluirBraille && cellsBraille.length > 0) {
-    const ALTURA_PONTO = 0.75;
-    const DIAMETRO_PONTO = 1.8;
-    const DIST_CELAS = 6.0;
-    const DIST_PONTOS_X = 2.5; const DIST_PONTOS_Y = 2.5;
-    const COORDS_PONTO = {
-      1: [0, 2 * DIST_PONTOS_Y], 2: [0, DIST_PONTOS_Y], 3: [0, 0],
-      4: [DIST_PONTOS_X, 2 * DIST_PONTOS_Y], 5: [DIST_PONTOS_X, DIST_PONTOS_Y], 6: [DIST_PONTOS_X, 0]
-    };
-    const raioEsfera = calcularRaioEsfera(DIAMETRO_PONTO, ALTURA_PONTO);
-    let zOffset = espessuraTexto >= 0 ? espessura - (raioEsfera - ALTURA_PONTO) : espessura - Math.abs(espessuraTexto);
-
-    const pontinhos = [];
-    let currentXIndex = 0;
-    const brailleStartX = centroXVisual - (brailleW / 2) + 1.25;
-    const brailleStartY = (alturaTotal / 2) - 11;
-
-    cellsBraille.forEach(cell => {
-      if (cell.dots && cell.dots.length > 0) {
-        cell.dots.forEach(num => {
-          const [px, py] = COORDS_PONTO[num];
-          let ponto = sphere({ radius: raioEsfera, segments: 24 });
-          ponto = translate([brailleStartX + (currentXIndex * DIST_CELAS) + px, brailleStartY + py, zOffset], ponto);
-          pontinhos.push(ponto);
-        });
-      }
-      currentXIndex++;
-    });
-    if (pontinhos.length > 0) geometriaConteudo.push(union(...pontinhos));
-  }
-
-  // 5. Efetua a fusão ou cavamento do texto/braille no bloco
-  if (geometriaConteudo.length > 0) {
-    const malhaConteudo = union(...geometriaConteudo);
-    if (espessuraTexto < 0) {
-      malhaFinal = subtract(malhaFinal, malhaConteudo);
-    } else {
-      malhaFinal = union(malhaFinal, malhaConteudo);
-    }
-  }
-
-  // Centraliza o bloco inteiro no eixo (0,0) para a impressora
-  let centroY = alturaTotal / 2;
-  let centroX = (largura + (tipo === 'cation' ? larguraEncaixe : 0)) / 2;
-  malhaFinal = translate([-centroX, -centroY, 0], malhaFinal);
-
-  return malhaFinal;
-}
-
-export function gerarUrlSTL(modelo3D) {
-  if (!modelo3D) return null;
-  const stlDados = serialize({ binary: true }, modelo3D);
-  const blob = new Blob(stlDados, { type: 'model/stl' });
-  return URL.createObjectURL(blob);
-}
-
-export function baixarArquivoSTL(url, nomeArquivo = 'formula_braille.stl') {
-  if (!url) return;
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = nomeArquivo;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-```eof
-
-```jsx:App.jsx
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Settings, ArrowRight, Download, Box, Copy, Check, Grip, Languages, Trash2, Mail, GraduationCap, Mic, MicOff, Volume2, Bug, User, Sliders, ChevronDown, ChevronUp, Handshake, Palette, Info, Heart, Layers, Eye, EyeOff } from 'lucide-react';
 import { gerarModeloJSCAD, geradorBlocoIonicoJSCAD, gerarUrlSTL, baixarArquivoSTL } from './braille3d';
@@ -311,11 +20,13 @@ import logoVerde from './assets/Quimica ao Alcanse das maos logo transparente VE
 import logoVermelho from './assets/Quimica ao Alcanse das maos logo transparente VERMELHO.png';
 import iconeAcessibilidade from './assets/simbolo acessibilidade.png';
 
+// Importações do Guia do OrcaSlicer
 import imgSelecaoImpressora from './assets/Selecao Impressora 3D Orca Slicer.png';
 import imgMenuInicial from './assets/Menu Inicial Orca Slicer.png';
 import imgPreVisualizacao from './assets/Pre visualizacao Peca 3D.png';
 import imgMultiCor from './assets/Previsualizar Multi cor Orca slicer.png';
 
+// DADOS DA EQUIPE E ÍCONES
 import fotoAndreGaito from './assets/FotoMembro-AndreGaito.jpg';
 import fotoRicardoMichel from './assets/FotoMembro-RicardoMichel.jpg';
 import fotoFernandaNeves from './assets/FotoMembro-FernandaNeves.png';
@@ -324,21 +35,19 @@ import fotoRaissaEcard from './assets/FotoMembro-RaissaEcard.jpg';
 import fotoPedroXavier from './assets/FotoMembro-PedroXavier.jpg';
 
 const EQUIPE = [
-  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem, impressão 3D e aplicação/validação dos materiais didáticos produzidos.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "http://lattes.cnpq.br/9008126975057063", foto: fotoAndreGaito },
-  { nome: "Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "http://lattes.cnpq.br/7631294110820860", foto: fotoRicardoMichel },
-  { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o Instituto Benjamin Costant (IBC) e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "http://lattes.cnpq.br/4349970710727785", foto: fotoFernandaNeves },
-  { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "http://lattes.cnpq.br/5822903514342446", foto: fotoRaissaEcard },
-  { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "http://lattes.cnpq.br/3500602218294576", foto: fotoHugoReis },
-  { nome: "Pedro Xavier", titulo: "Mestrando em Química", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "http://lattes.cnpq.br/3367215215251168", foto: fotoPedroXavier }
+  { nome: "André Vinnicios S. Gaito", titulo: "Graduando em Licenciatura em Química", descricao: "Criador do Projeto Química ao Alcance das Mãos, responsável pela idealização, programação, modelagem, impressão 3D e aplicação/validação dos materiais didáticos produzidos.", email: "andre.gaito@gradu.iq.ufrj.br", lattes: "[http://lattes.cnpq.br/9008126975057063](http://lattes.cnpq.br/9008126975057063)", foto: fotoAndreGaito },
+  { nome: "Ricardo Cunha Michel", titulo: "Professor Doutor em Química", descricao: "Apoio à concepção dos materiais, orientação quanto à correção dos conceitos químicos e normas Braille, produção de recursos e estratégias de aplicação e coleta de dados.", email: "michel@iq.ufrj.br", lattes: "[http://lattes.cnpq.br/7631294110820860](http://lattes.cnpq.br/7631294110820860)", foto: fotoRicardoMichel },
+  { nome: "Fernanda Das Neves Costa", titulo: "Professora Doutora em Química", descricao: "Coordenação geral, tramitação institucional e ética, supervisão metodológica, articulação com o Instituto Benjamin Costant (IBC) e validação educacional dos instrumentos.", email: "FNCosta@IPPN.UFRJ.br", lattes: "[http://lattes.cnpq.br/4349970710727785](http://lattes.cnpq.br/4349970710727785)", foto: fotoFernandaNeves },
+  { nome: "Raíssa Ecard da Costa Cruz", titulo: "Doutoranda em Química", descricao: "Validação técnica e conceitual dos kits pedagógicos, planejamento das atividades de campo, co-mediação nas intervenções educacionais e suporte metodológico.", email: "raissaecard@pos.iq.ufrj.br", lattes: "[http://lattes.cnpq.br/5822903514342446](http://lattes.cnpq.br/5822903514342446)", foto: fotoRaissaEcard },
+  { nome: "Hugo Costa Reis", titulo: "Doutorando em Química", descricao: "Avaliação de usabilidade e ergonomia dos protótipos em impressão 3D, estruturação logística para a execução das dinâmicas, co-moderação na aplicação dos materiais.", email: "hugo.reis@eq.frj.br", lattes: "[http://lattes.cnpq.br/3500602218294576](http://lattes.cnpq.br/3500602218294576)", foto: fotoHugoReis },
+  { nome: "Pedro Xavier", titulo: "Mestrando em Química", descricao: "Assistência técnica e pedagógica para implementação da tecnologia assistiva, impressão 3D e Modelagem dos materiais.", email: "pedrofariax@ima.ufrj.br", lattes: "[http://lattes.cnpq.br/3367215215251168](http://lattes.cnpq.br/3367215215251168)", foto: fotoPedroXavier }
 ];
 
-const GithubIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>;
-const InstagramIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>;
-const LinkedinIcon = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
+const GithubIcon = ({ className }) => <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.2c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>;
+const InstagramIcon = ({ className }) => <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>;
+const LinkedinIcon = ({ className }) => <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>;
 
-// =========================================================
-// RENDERIZADOR 3D: COM EXTRATOR DE DIMENSÕES
-// =========================================================
+// RENDERIZADOR 3D COM EXTRATOR DE DIMENSÕES
 const StlModel = ({ url, cor, onDimensionsParsed }) => {
   const originalGeom = useLoader(STLLoader, url);
   
@@ -347,7 +56,6 @@ const StlModel = ({ url, cor, onDimensionsParsed }) => {
     clonedGeom.computeBoundingBox();
     const box = clonedGeom.boundingBox;
     
-    // Extrai dimensões
     if (onDimensionsParsed) {
       const sizeX = Math.abs(box.max.x - box.min.x);
       const sizeY = Math.abs(box.max.y - box.min.y);
@@ -369,9 +77,7 @@ const StlModel = ({ url, cor, onDimensionsParsed }) => {
   );
 };
 
-// =========================================================
 // OVERLAY DE DIMENSÕES
-// =========================================================
 const DimensionsOverlay = ({ dimensions, isVisible }) => {
   if (!dimensions || !isVisible) return null;
   return (
@@ -455,104 +161,51 @@ const ConfigSlider = ({ label, value, min, max, step, unit, onChange, cor }) => 
   <div className="flex flex-col">
     <div className="flex justify-between items-center mb-1">
       <label className="text-[11px] sm:text-xs font-bold text-slate-600 uppercase">{label}</label>
-      <span 
-        className="text-xs font-mono px-2 py-0.5 rounded transition-colors"
-        style={{ color: cor, backgroundColor: `${cor}1A`, border: `1px solid ${cor}33` }}
-      >
+      <span className="text-xs font-mono px-2 py-0.5 rounded transition-colors" style={{ color: cor, backgroundColor: `${cor}1A`, border: `1px solid ${cor}33` }}>
         {value} {unit}
       </span>
     </div>
     <input 
       type="range" min={min} max={max} step={step} 
       value={value} onChange={onChange} 
-      aria-label={`${label} em ${unit}`}
       className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer" 
       style={{ accentColor: cor }}
     />
   </div>
 );
 
-// =========================================================
-// DICIONÁRIO DE TEMAS E LOGOS POR COR
-// =========================================================
 const getTheme = (idOrHex) => {
   const predefined = {
-    '#0e52c2': { // Azul
-      cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8',
-      btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logo: logoAzul, textoSubCaixa: '#1e293b'
-    },
-    '#1a8441': { // Verde
-      cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194',
-      btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logo: logoVerde, textoSubCaixa: '#1e293b'
-    },
-    '#511576': { // Roxo
-      cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da',
-      btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd',
-      textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658',
-      textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logo: logoRoxo, textoSubCaixa: '#000000'
-    },
-    '#db2777': { // Rosa
-      cabecalho: '#ffffff', abaNormal: '#db2777', abaAtiva: '#be185d', fundoPrincipal: '#f4a6c8',
-      btnVisualizar: '#db2777', btnBaixar: '#059669', fundoCaixa: '#fdf2f8', fundoSubCaixa: '#fce7f3',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#db2777', logo: logoRosa, textoSubCaixa: '#1e293b'
-    },
-    '#dc2626': { // Vermelho
-      cabecalho: '#ffffff', abaNormal: '#dc2626', abaAtiva: '#b91c1c', fundoPrincipal: '#f19e9e',
-      btnVisualizar: '#dc2626', btnBaixar: '#059669', fundoCaixa: '#fef2f2', fundoSubCaixa: '#fee2e2',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#dc2626', logo: logoVermelho, textoSubCaixa: '#1e293b'
-    },
-    '#ea580c': { // Laranja
-      cabecalho: '#ffffff', abaNormal: '#ea580c', abaAtiva: '#c2410c', fundoPrincipal: '#f8bd9d',
-      btnVisualizar: '#ea580c', btnBaixar: '#059669', fundoCaixa: '#fff7ed', fundoSubCaixa: '#ffedd5',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ea580c', logo: logoLaranja, textoSubCaixa: '#1e293b'
-    },
-    '#ca8a04': { // Amarelo
-      cabecalho: '#ffffff', abaNormal: '#ca8a04', abaAtiva: '#a16207', fundoPrincipal: '#f7dfa4',
-      btnVisualizar: '#ca8a04', btnBaixar: '#059669', fundoCaixa: '#fefce8', fundoSubCaixa: '#fef9c3',
-      textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-      textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ca8a04', logo: logoAmarelo, textoSubCaixa: '#1e293b'
-    }
+    '#0e52c2': { cabecalho: '#ffffff', abaNormal: '#0e52c2', abaAtiva: '#0a3d91', fundoPrincipal: '#869fd8', btnVisualizar: '#0e52c2', btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#0e52c2', logo: logoAzul, textoSubCaixa: '#1e293b' },
+    '#1a8441': { cabecalho: '#ffffff', abaNormal: '#1a8441', abaAtiva: '#1c6030', fundoPrincipal: '#87a194', btnVisualizar: '#1c6030', btnBaixar: '#066a63', fundoCaixa: '#eaf6f0', fundoSubCaixa: '#c3e4d3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#1a8441', logo: logoVerde, textoSubCaixa: '#1e293b' },
+    '#511576': { cabecalho: '#d8cff6', abaNormal: '#511576', abaAtiva: '#380d60', fundoPrincipal: '#87a2da', btnVisualizar: '#591884', btnBaixar: '#93e450', fundoCaixa: '#ede9fe', fundoSubCaixa: '#e8dafd', textoAba: '#a0f658', textoAbaNormal: 'rgba(160,246,88,0.6)', textoBtnVis: '#a0f658', borderBtnVis: '#a0f658', textoBtnBaixar: '#591884', borderBtnBaixar: '#591884', bordaGeral: '#cdc7f3', logo: logoRoxo, textoSubCaixa: '#000000' },
+    '#db2777': { cabecalho: '#ffffff', abaNormal: '#db2777', abaAtiva: '#be185d', fundoPrincipal: '#f4a6c8', btnVisualizar: '#db2777', btnBaixar: '#059669', fundoCaixa: '#fdf2f8', fundoSubCaixa: '#fce7f3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#db2777', logo: logoRosa, textoSubCaixa: '#1e293b' },
+    '#dc2626': { cabecalho: '#ffffff', abaNormal: '#dc2626', abaAtiva: '#b91c1c', fundoPrincipal: '#f19e9e', btnVisualizar: '#dc2626', btnBaixar: '#059669', fundoCaixa: '#fef2f2', fundoSubCaixa: '#fee2e2', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#dc2626', logo: logoVermelho, textoSubCaixa: '#1e293b' },
+    '#ea580c': { cabecalho: '#ffffff', abaNormal: '#ea580c', abaAtiva: '#c2410c', fundoPrincipal: '#f8bd9d', btnVisualizar: '#ea580c', btnBaixar: '#059669', fundoCaixa: '#fff7ed', fundoSubCaixa: '#ffedd5', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ea580c', logo: logoLaranja, textoSubCaixa: '#1e293b' },
+    '#ca8a04': { cabecalho: '#ffffff', abaNormal: '#ca8a04', abaAtiva: '#a16207', fundoPrincipal: '#f7dfa4', btnVisualizar: '#ca8a04', btnBaixar: '#059669', fundoCaixa: '#fefce8', fundoSubCaixa: '#fef9c3', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: '#ca8a04', logo: logoAmarelo, textoSubCaixa: '#1e293b' }
   };
-
   if (predefined[idOrHex]) return { corPrincipal: idOrHex, ...predefined[idOrHex] };
-
-  return {
-    corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`,
-    btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc',
-    textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent',
-    textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logo: logoPrincipal, textoSubCaixa: '#1e293b'
-  };
+  return { corPrincipal: idOrHex, cabecalho: '#ffffff', abaNormal: idOrHex, abaAtiva: 'rgba(0,0,0,0.25)', fundoPrincipal: `${idOrHex}20`, btnVisualizar: idOrHex, btnBaixar: '#059669', fundoCaixa: '#ffffff', fundoSubCaixa: '#f8fafc', textoAba: '#ffffff', textoAbaNormal: 'rgba(255,255,255,0.7)', textoBtnVis: '#ffffff', borderBtnVis: 'transparent', textoBtnBaixar: '#ffffff', borderBtnBaixar: 'transparent', bordaGeral: idOrHex, logo: logoPrincipal, textoSubCaixa: '#1e293b' };
 };
 
 // Logica Cores Dinâmicas dos Blocos Ionicos baseado no Tema Escolhido
 const getIonColorBasedOnTheme = (themeHex, ionType) => {
   const map = {
-    '#0e52c2': { cation: '#0e52c2', anion: '#dc2626' }, // Azul: Cat=Azul, An=Vermelho
-    '#511576': { cation: '#1a8441', anion: '#511576' }, // Roxo: Cat=Verde, An=Roxo
-    '#1a8441': { cation: '#1a8441', anion: '#ea580c' }, // Verde: Cat=Verde, An=Laranja
-    '#dc2626': { cation: '#0e52c2', anion: '#dc2626' }, // Vermelho: Cat=Azul, An=Vermelho
-    '#ea580c': { cation: '#1a8441', anion: '#ea580c' }, // Laranja: Cat=Verde, An=Laranja
-    '#ca8a04': { cation: '#ca8a04', anion: '#ff4500' }, // Amarelo: Cat=Amarelo, An=Laranja Avermelhado
-    '#db2777': { cation: '#db2777', anion: '#a855f7' }  // Rosa: Cat=Rosa, An=Lilas
+    '#0e52c2': { cation: '#0e52c2', anion: '#dc2626' }, 
+    '#511576': { cation: '#1a8441', anion: '#511576' }, 
+    '#1a8441': { cation: '#1a8441', anion: '#ea580c' }, 
+    '#dc2626': { cation: '#0e52c2', anion: '#dc2626' }, 
+    '#ea580c': { cation: '#1a8441', anion: '#ea580c' }, 
+    '#ca8a04': { cation: '#ca8a04', anion: '#ff4500' }, 
+    '#db2777': { cation: '#db2777', anion: '#a855f7' }  
   };
   if (map[themeHex]) return map[themeHex][ionType];
-  return ionType === 'cation' ? '#0e52c2' : '#dc2626'; // fallback global
+  return ionType === 'cation' ? '#0e52c2' : '#dc2626'; 
 };
 
-// =========================================================
-// TESTADOR DE CORES: 7 EM UMA LINHA E Z-INDEX SEGURO
-// =========================================================
 const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
   const [menuAberto, setMenuAberto] = useState(false);
   const isRoxo = corPrincipal === '#511576';
-
   const CORES_PREDEFINIDAS = [
     { nome: 'Azul', hex: '#0e52c2' }, { nome: 'Roxo', hex: '#511576' }, { nome: 'Rosa', hex: '#db2777' },
     { nome: 'Vermelho', hex: '#dc2626' }, { nome: 'Laranja', hex: '#ea580c' }, { nome: 'Amarelo', hex: '#ca8a04' },
@@ -594,9 +247,6 @@ const ColorTester = ({ corPrincipal, setCorPrincipal }) => {
   );
 };
 
-// =========================================================
-// MOTOR ROBUSTO DE VALIDAÇÃO E SUGESTÃO QUÍMICA
-// =========================================================
 const checarSugestaoQuimica = (texto) => {
   const limpo = texto.trim();
   if (!limpo || limpo.length < 2 || limpo.includes(' ')) return null;
@@ -682,6 +332,7 @@ export default function App() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [stlUrl, setStlUrl] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
+  
   const [dimensoesGerador, setDimensoesGerador] = useState(null);
   const [mostrarDimensoesGerador, setMostrarDimensoesGerador] = useState(true);
 
@@ -718,7 +369,6 @@ export default function App() {
   const [dimensoesIonico, setDimensoesIonico] = useState(null);
   const [mostrarDimensoesIonico, setMostrarDimensoesIonico] = useState(true);
 
-  // Sincroniza a cor da peça iônica caso o usuário troque o tema ou clique em cátion/ânion
   useEffect(() => {
     if (!ionConfig.corCustomizada) {
       setIonConfig(prev => ({ ...prev, corModelo: getIonColorBasedOnTheme(corPrincipal, prev.tipo) }));
@@ -792,7 +442,6 @@ export default function App() {
     if (!blocosGerados || blocosGerados.length === 0) return;
     
     setIsGenerating(true); setStlUrl(null); setDimensoesGerador(null);
-
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
@@ -806,7 +455,6 @@ export default function App() {
   const handleGenerateIon = async (e) => {
     e.preventDefault();
     setIsGeneratingIon(true); setIonStlUrl(null); setDimensoesIonico(null);
-
     await new Promise(resolve => setTimeout(resolve, 50));
 
     try {
@@ -922,7 +570,7 @@ export default function App() {
     recognition.lang = 'pt-BR'; recognition.interimResults = false;
     recognition.onstart = () => setIsListening(true);
     recognition.onresult = (event) => { const transcript = event.results[0][0].transcript; const newText = input ? `${input} ${transcript}` : transcript; setInput(newText); parseBraille(newText); };
-    recognition.onerror = (event) => { setIsListening(false); };
+    recognition.onerror = () => setIsListening(false);
     recognition.onend = () => setIsListening(false);
     recognition.start();
   };
@@ -987,12 +635,12 @@ export default function App() {
               <div className="text-slate-600 space-y-3">
                 <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                   <p className="flex-1 leading-relaxed pr-2 text-justify">
-                    Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela <a href="https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline transition-colors" style={{ color: theme.corPrincipal }}>Grafia Química Braille para Uso no Brasil (3ª edição, 2017)</a>.
+                    Converte fórmulas químicas em arquivos 3D (STL) para impressão 3D e leitura tátil, seguindo as normas estabelecidas pela <a href="[https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file](https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file)" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline transition-colors" style={{ color: theme.corPrincipal }}>Grafia Química Braille para Uso no Brasil (3ª edição, 2017)</a>.
                   </p>
                   <div className="flex-shrink-0 self-start"><ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} /></div>
                 </div>
                 <div className="border-l-4 pl-3 py-2 pr-3 rounded-r text-sm transition-colors" style={{ borderColor: theme.corPrincipal, backgroundColor: 'rgba(255,255,255,0.4)' }}>
-                  <p className="text-justify">Uma ferramenta de tecnologia assistiva desenvolvida por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="hover:underline cursor-pointer font-semibold text-slate-700">André Vinnicios S. Gaito</a> para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.</p>
+                  <p className="text-justify">Uma ferramenta de tecnologia assistiva desenvolvida por <a href="[https://www.linkedin.com/in/andre-gaito-2a58151b1/](https://www.linkedin.com/in/andre-gaito-2a58151b1/)" target="_blank" rel="noopener noreferrer" className="hover:underline cursor-pointer font-semibold text-slate-700">André Vinnicios S. Gaito</a> para facilitar a inclusão no ensino de ciências e tornar a química ao alcance de todos.</p>
                 </div>
               </div>
             </div>
@@ -1464,7 +1112,7 @@ export default function App() {
                 <div className="pt-4 text-sm sm:text-base text-slate-700">
                   <h4 className="font-bold mb-1">Ainda não possui um software fatiador?</h4>
                   <p className="text-justify mb-4">Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download do <strong>OrcaSlicer</strong>. Pois é uma das ferramentas de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e perfeitamente calibrados para praticamente todas as marcas do mercado.</p>
-                  <a href="https://www.orcaslicer.com/download/" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
+                  <a href="[https://www.orcaslicer.com/download/](https://www.orcaslicer.com/download/)" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
                     <Download className="w-5 h-5 mr-2" /> Baixar OrcaSlicer
                   </a>
                 </div>
@@ -1493,16 +1141,16 @@ export default function App() {
               <h3 className="text-base sm:text-lg font-bold text-white">Química ao Alcance das Mãos:</h3>
               <p className="text-sm text-slate-400 mb-1">Gerador 3D de Química para Braille</p>
               <p className="text-xs text-slate-500">
-                Criado por <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors" style={{ color: theme.corPrincipal === '#511576' ? '#a0f658' : theme.corPrincipal }}>André Vinnicios S. Gaito</a>
+                Criado por <a href="[https://www.linkedin.com/in/andre-gaito-2a58151b1/](https://www.linkedin.com/in/andre-gaito-2a58151b1/)" target="_blank" rel="noopener noreferrer" className="hover:underline transition-colors" style={{ color: theme.corPrincipal === '#511576' ? '#a0f658' : theme.corPrincipal }}>André Vinnicios S. Gaito</a>
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-5">
             <a href="mailto:andrevinniciosgaito@gmail.com" aria-label="Enviar E-mail" className="text-slate-400 hover:text-white transition-colors"><Mail className="w-6 h-6" /></a>
-            <a href="http://lattes.cnpq.br/9008126975057063" target="_blank" rel="noopener noreferrer" aria-label="Lattes" className="text-slate-400 hover:text-white transition-colors"><GraduationCap className="w-6 h-6" /></a>
-            <a href="https://www.instagram.com/andre_gaito/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-slate-400 hover:text-white transition-colors"><InstagramIcon className="w-6 h-6" /></a>
-            <a href="https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-slate-400 hover:text-white transition-colors"><GithubIcon className="w-6 h-6" /></a>
-            <a href="https://www.linkedin.com/in/andre-gaito-2a58151b1/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-slate-400 hover:text-white transition-colors"><LinkedinIcon className="w-6 h-6" /></a>
+            <a href="[http://lattes.cnpq.br/9008126975057063](http://lattes.cnpq.br/9008126975057063)" target="_blank" rel="noopener noreferrer" aria-label="Lattes" className="text-slate-400 hover:text-white transition-colors"><GraduationCap className="w-6 h-6" /></a>
+            <a href="[https://www.instagram.com/andre_gaito/](https://www.instagram.com/andre_gaito/)" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-slate-400 hover:text-white transition-colors"><InstagramIcon className="w-6 h-6" /></a>
+            <a href="[https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0](https://github.com/andregaito/Gerador-3D-de-Quimica-para-Braille---V.1.0)" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="text-slate-400 hover:text-white transition-colors"><GithubIcon className="w-6 h-6" /></a>
+            <a href="[https://www.linkedin.com/in/andre-gaito-2a58151b1/](https://www.linkedin.com/in/andre-gaito-2a58151b1/)" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="text-slate-400 hover:text-white transition-colors"><LinkedinIcon className="w-6 h-6" /></a>
           </div>
         </div>
       </footer>
@@ -1510,4 +1158,3 @@ export default function App() {
     </div>
   );
 }
-```eof
