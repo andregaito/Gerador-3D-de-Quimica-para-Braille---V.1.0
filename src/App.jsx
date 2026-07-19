@@ -358,7 +358,7 @@ export default function App() {
     alturaEncaixe: 11.0,
     formula: 'H⁺',
     espessuraTexto: 1.0,
-    fonte: 'sans',
+    fonte: 'Arial Black',
     incluirBraille: false,
     corModelo: getIonColorBasedOnTheme(corPrincipal, 'cation'),
     corCustomizada: false
@@ -673,12 +673,12 @@ export default function App() {
                     <div id="painel-avancado" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mt-6 bg-slate-50/50 p-5 rounded-lg border border-slate-200">
                       <ConfigSlider label="Altura do Ponto" value={config3D.alturaPonto} min="0.5" max="1.5" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, alturaPonto: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                       <ConfigSlider label="Diâmetro do Ponto" value={config3D.diametroPonto} min="1.0" max="2.0" step="0.05" unit="mm" onChange={(e) => setConfig3D({...config3D, diametroPonto: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Espessura da Placa" value={config3D.espessuraPlaca} min="0.0" max="10.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, espessuraPlaca: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Bordas Arredondadas" value={config3D.borda} min="0.0" max="10.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, borda: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                       <ConfigSlider label="Dist. Pontos (X/Y)" value={config3D.distPontos} min="1.0" max="3.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distPontos: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                       <ConfigSlider label="Dist. Celas" value={config3D.distCelas} min="3.0" max="8.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distCelas: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.5" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Dist. Linhas" value={config3D.distLinhas} min="5.0" max="15.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, distLinhas: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                      <ConfigSlider label="Margem Geral" value={config3D.margem} min="1.0" max="5.0" step="0.1" unit="mm" onChange={(e) => setConfig3D({...config3D, margem: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                     </div>
                   )}
                 </div>
@@ -786,14 +786,14 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                   <h2 className="text-xl font-extrabold text-slate-900">Gerador Didático: Blocos Iônicos com Encaixes</h2>
-                  <p className="text-slate-600 text-sm mt-1 text-justify">Crie peças de quebra-cabeça 3D para ensinar ligações iônicas. Cátions possuem encaixes machos na extremidade direita. Ânions possuem cortes fêmeas na extremidade esquerda para receber esses machos perfeitamente. A altura do bloco multiplica dependendo da valência (ex: bloco +2 tem o dobro da altura base).</p>
+                  <p className="text-slate-600 text-sm mt-1 text-justify">Crie seus proprios <strong>Bloquinhos Iônicos</strong> para ensinar diversos conceitos de química, como: Tipos de Ligações Químicas, Estequiometria/Balanceamento, Número de Oxidação (NOX) e Valência. Em que os <strong>Cátions</strong> possuem <strong>encaixes positivos (+)</strong> na extremidade direita, enquanto os <strong>Ânions possuem encaixes negativos (-)</strong> na sua extremidade esquerda que se conectam perfeitamente nos Cátions. A altura do bloco multiplica dependendo da valência (ex: bloco +2 tem o dobro da altura base).</p>
                 </div>
                 <ColorTester corPrincipal={corPrincipal} setCorPrincipal={setCorPrincipal} />
               </div>
 
               <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-center gap-2 shadow-sm">
                 <Info className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <span><strong>Formatação do Texto:</strong> Para que a química fique correta no bloco, utilize números sobrescritos e subscritos padrões Unicode. Exemplo: <strong>SO₄²⁻</strong> ou <strong>H⁺</strong>. O sistema reconhece e formata os tamanhos vetorizados e centraliza automaticamente.</span>
+                <span><strong>Atenção a Formatação:</strong> Para que a fórmula química saia correta no bloco, digite ou cole utilizando números sobrescritos (⁺, ⁻, ¹, ², ³, ⁴, ⁵, ⁶) e subscritos (₁, ₂, ₃, ₄, ₅, ₆).. Exemplo: <strong>SO₄²⁻</strong> ou <strong>H⁺</strong>. O texto será centralizado e dimensionado de forma automática!.</span>
               </div>
             </div>
 
@@ -818,7 +818,7 @@ export default function App() {
                         className={`p-3 rounded-lg border-2 font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${ionConfig.tipo === 'cation' && ionConfig.valencia === val ? 'bg-blue-600 text-white border-blue-700 shadow-md transform scale-105' : 'bg-blue-50 text-blue-900 border-blue-200 hover:bg-blue-100'}`}
                       >
                         <span className="text-lg">Cátion +{val}</span>
-                        <span className="text-[10px] font-normal opacity-80 uppercase tracking-wider mt-1">Macho (Direita)</span>
+                        <span className="text-[10px] font-normal opacity-80 uppercase tracking-wider mt-1">Encaixe Positivo</span>
                       </button>
                     ))}
                     {[1, 2, 3, 4].map((val) => (
@@ -835,7 +835,7 @@ export default function App() {
                         className={`p-3 rounded-lg border-2 font-bold flex flex-col items-center justify-center transition-all cursor-pointer ${ionConfig.tipo === 'anion' && ionConfig.valencia === val ? 'bg-red-600 text-white border-red-700 shadow-md transform scale-105' : 'bg-red-50 text-red-900 border-red-200 hover:bg-red-100'}`}
                       >
                         <span className="text-lg">Ânion -{val}</span>
-                        <span className="text-[10px] font-normal opacity-80 uppercase tracking-wider mt-1">Fêmea (Esquerda)</span>
+                        <span className="text-[10px] font-normal opacity-80 uppercase tracking-wider mt-1">Encaixe Negativo</span>
                       </button>
                     ))}
                   </div>
@@ -881,11 +881,11 @@ export default function App() {
                 <div className="pt-4 border-t border-slate-200">
                   <label className="block text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide">3. Dimensões Físicas</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm">
-                    <ConfigSlider label="Larg. Base (X)" value={ionConfig.largura} min="30.0" max="100.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, largura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label={`Alt. Base (Y)`} value={ionConfig.altura} min="15.0" max="50.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, altura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Espessura (Z)" value={ionConfig.espessura} min="2.0" max="15.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, espessura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Largura Encaixe" value={ionConfig.larguraEncaixe} min="4.0" max="20.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, larguraEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
-                    <ConfigSlider label="Altura Encaixe" value={ionConfig.alturaEncaixe} min="4.0" max="25.0" step="0.5" unit="mm" onChange={(e) => setIonConfig({...ionConfig, alturaEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Largura da Base (X)" value={ionConfig.largura} min="30.0" max="100.0" step="0.2" unit="mm" onChange={(e) => setIonConfig({...ionConfig, largura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label={`Altura da Base (Y)`} value={ionConfig.altura} min="15.0" max="50.0" step="0.2" unit="mm" onChange={(e) => setIonConfig({...ionConfig, altura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Espessura da base (Z)" value={ionConfig.espessura} min="2.0" max="15.0" step="0.2" unit="mm" onChange={(e) => setIonConfig({...ionConfig, espessura: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Largura do Encaixe" value={ionConfig.larguraEncaixe} min="4.0" max="20.0" step="0.25" unit="mm" onChange={(e) => setIonConfig({...ionConfig, larguraEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
+                    <ConfigSlider label="Altura do Encaixe" value={ionConfig.alturaEncaixe} min="4.0" max="25.0" step="0.25" unit="mm" onChange={(e) => setIonConfig({...ionConfig, alturaEncaixe: parseFloat(e.target.value)})} cor={theme.corPrincipal} />
                   </div>
                   <p className="text-xs text-slate-500 mt-2 text-right">Altura Total (Base x Valência) = {(ionConfig.altura * ionConfig.valencia).toFixed(1)}mm</p>
                 </div>
@@ -895,18 +895,18 @@ export default function App() {
                   <div className="bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm">
                     <ConfigSlider
                       label="Espessura do Texto / Relevo"
-                      value={ionConfig.espessuraTexto} min="-2.0" max="2.0" step="0.5" unit="mm"
+                      value={ionConfig.espessuraTexto} min="-2.0" max="2.0" step="0.1" unit="mm"
                       onChange={(e) => setIonConfig({...ionConfig, espessuraTexto: parseFloat(e.target.value)})}
                       cor={ionConfig.espessuraTexto < 0 ? '#dc2626' : theme.corPrincipal}
                     />
                     <span className="text-xs text-slate-500 block mt-1.5">
-                      {ionConfig.espessuraTexto < 0 ? '⚠️ Texto Escavado (-) para dentro da peça.' : '✨ Texto em Relevo (+) para fora da peça.'}
+                      {ionConfig.espessuraTexto < 0 ? 'Valores negativos: O texto será gerado como uma marcação negativa "para dentro da peça".' : 'Valores Positivos: O texto será gerado como um "Relevo" para fora da peça.'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200 h-full shadow-sm">
                     <div>
-                      <span className="font-bold text-slate-800 block">Adicionar Escrita Braille?</span>
+                      <span className="font-bold text-slate-800 block">Adicionar Escrita Braille ao Bloco?</span>
                       <span className="text-xs text-slate-500">Gera a tradução tátil no bloco (centralizado automaticamente).</span>
                     </div>
                     <input
@@ -986,8 +986,9 @@ export default function App() {
         {activeTab === 'sobre' && (
           <div id="painel-sobre" role="tabpanel" aria-label="Sobre o Projeto" className="p-8 sm:p-12 rounded-xl shadow-sm transition-colors duration-500 text-slate-700 fade-in space-y-8 text-left" style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}>
             <div className="border-b border-slate-200 pb-6"><h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Química ao Alcance das Mãos</h2><p className="text-lg font-medium mt-2 transition-colors text-justify" style={{ color: theme.corPrincipal }}>Democratizando o ensino de ciências através da tecnologia e da manufatura aditiva.</p></div>
-            <div className="space-y-4"><h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3><p className="leading-relaxed text-justify">O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o MEC tenham estabelecido a norma da <em>Grafia Química Braille para Uso no Brasil</em>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.</p></div>
+            <div className="space-y-4"><h3 className="text-xl font-bold text-slate-800">O Desafio da Inclusão</h3><p className="leading-relaxed text-justify">O ensino de química é historicamente pautado em elementos visuais: fórmulas espaciais, reações, cores e gráficos. Para alunos com deficiência visual ou baixa visão, isso cria uma barreira imensa no aprendizado. Embora o <strong>Instituto Benjamin Constant (IBC)</strong> e o Ministerio da Educação (MEC) tenham estabelecido a norma da <a href="[https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file](https://www.gov.br/ibc/pt-br/pesquisa-e-tecnologia/materiais-especializados-1/livros-em-braille-1/o-sistema-braille-arquivos/grafia-quimica-braille-para-uso-no-brasil-pdf.pdf/@@display-file/file)" target="_blank" rel="noopener noreferrer" className="font-semibold hover:underline transition-colors" style={{ color: theme.corPrincipal }}>Grafia Química Braille para Uso no Brasil (3ª edição, 2017)</a>, a produção e o acesso a esses materiais físicos ainda são escassos, caros e lentos nas escolas regulares.</p></div>
             <div className="space-y-4"><h3 className="text-xl font-bold text-slate-800">A Solução: Código Aberto e Impressão 3D</h3><p className="leading-relaxed text-justify">O Gerador 3D de Química para Braille nasceu para ser uma ponte entre a tecnologia de prototipagem rápida e a educação inclusiva. Através desta plataforma <strong>Open Source</strong>, qualquer professor, escola ou laboratório maker pode digitar uma fórmula e gerar uma matriz tátil digital (STL) em segundos. O que antes demorava semanas para ser encomendado, agora pode ser fabricado na própria escola via impressão 3D, sob demanda e com baixo custo.</p></div>
+            <div className="space-y-4"><h3 className="text-xl font-bold text-slate-800">Inovação em Equipamentos de Laboratório</h3><p className="leading-relaxed text-justify">Acreditamos que a tecnologia assistiva deve ser ágil e escalável. Este gerador é o primeiro passo de uma visão de startup mais ampla focada na criação de equipamentos de laboratório adaptados e materiais didáticos inovadores. Nosso objetivo é consolidar um ecossistema onde o design de hardware torne os laboratórios de ciências espaços 100% acessíveis.</p></div>
           </div>
         )}
 
@@ -1112,7 +1113,7 @@ export default function App() {
                 <div className="pt-4 text-sm sm:text-base text-slate-700">
                   <h4 className="font-bold mb-1">Ainda não possui um software fatiador?</h4>
                   <p className="text-justify mb-4">Caso seja o seu primeiro contato com impressão 3D ou se você está estruturando um laboratório maker na sua escola, recomendamos o download do <strong>OrcaSlicer</strong>. Pois é uma das ferramentas de fatiamento de código aberto mais robusta e amigável no momento, já contendo perfis prontos e perfeitamente calibrados para praticamente todas as marcas do mercado.</p>
-                  <a href="[https://www.orcaslicer.com/download/](https://www.orcaslicer.com/download/)" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
+                  <a href="https://www.orcaslicer.com/download/" rel="noopener noreferrer" className="inline-flex mt-1 items-center px-5 py-3 font-bold text-white rounded-lg shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: theme.corPrincipal }}>
                     <Download className="w-5 h-5 mr-2" /> Baixar OrcaSlicer
                   </a>
                 </div>
@@ -1124,10 +1125,18 @@ export default function App() {
         {/* ======================================================== */}
         {/* ABA: SAIBA MAIS */}
         {/* ======================================================== */}
-        {activeTab === 'saiba-mais' && (
+        {activeTab === 'Novidades e Próximos Passos' && (
           <div id="painel-saiba-mais" role="tabpanel" aria-label="Saiba Mais" className="p-12 rounded-xl shadow-sm transition-colors duration-500 text-center text-slate-500 fade-in" style={{ backgroundColor: theme.fundoCaixa, border: `2px solid ${theme.bordaGeral}` }}>
             <h2 className="text-2xl font-bold text-slate-700 mb-4">Saiba Mais</h2>
-            <p className="text-justify">Área reservada para documentações futuras.</p>
+            <p className="text-justify">O projeto Química ao Alcance das Mãos é uma iniciativa em contínua expansão e aprimoramento científico. Atualmente, nosso foco está na criação e consolidação de redes de colaboração com instituições de referência no ensino e pesquisa, como: o Instituto Benjamin Constant (IBC), a UFRJ, o IFRJ e o Colégio Pedro II. Estamos preparando novos recursos, dinâmicas interativas e formações didáticas que serão disponibilizadas em breve aqui na plataforma. Para acompanhar em tempo real nossas próximas atualizações, aprovações, agendas de aplicação nas escolas e parcerias firmadas, siga nossos canais oficiais de comunicação no Instagram: @quimicaaoalcancedasmaos e  @projetoatomizando</p>
+            <p className="text-justify">É com grande satisfação que celebramos a estreita parceria com o Projeto Atomizando (@projetoatomizando), uma brilhante iniciativa de extensão e divulgação científica da Universidade Federal do Rio de Janeiro (UFRJ). O Atomizando se destaca por aproximar a química do dia a dia e das escolas através de dinâmicas lúdicas, metodologias ativas e experimentação, tornando a aprendizagem muito mais interativa e estimulante. Esta aliança estratégica representa uma verdadeira "força-tarefa" que soma conhecimentos teóricos, práticos e metodológicos para enriquecer e consolidar ambos os projetos. O traço de união dessa parceria é a Profa. Dra. Fernanda das Neves Costa (IPPN/UFRJ), coordenadora do Atomizando e peça fundamental na equipe do Química ao Alcance das Mãos. Sua liderança é indispensável na condução da articulação institucional do nosso projeto, especialmente nos trâmites acadêmicos e nas submissões ao Comitê de Ética em Pesquisa (CEP) em colaboração com o Instituto Benjamin Constant (IBC).</p>
+
+            
+            <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
+            <Palette className="w-4 h-4 text-slate-600" />
+            <span className="text-xs font-semibold text-slate-700 hidden sm:inline">Cor (RGB):</span>
+            <input type="color" value={ionConfig.corModelo} onChange={(e) => setIonConfig({ ...ionConfig, corModelo: e.target.value, corCustomizada: true })} className="w-6 h-6 rounded border-0 cursor-pointer p-0" title="Mudar cor do bloco livremente" />
+            </div>
           </div>
         )}
 
