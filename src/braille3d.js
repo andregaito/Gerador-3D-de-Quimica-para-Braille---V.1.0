@@ -1,13 +1,10 @@
-import { primitives, transforms, booleans, text, geometries, expansions, extrusions } from '@jscad/modeling';
+import { primitives, transforms, booleans, text } from '@jscad/modeling';
 import { serialize } from '@jscad/stl-serializer';
 
-const { cuboid, roundedCuboid, sphere } = primitives;
-const { translate } = transforms;
+const { cuboid, roundedCuboid, sphere, cylinder } = primitives;
+const { translate, rotateZ } = transforms;
 const { union, subtract } = booleans;
 const { vectorText } = text;
-const { path2 } = geometries;
-const { expand } = expansions;
-const { extrudeLinear } = extrusions;
 
 function calcularRaioEsfera(diametroBase, alturaCalota) {
   const raioBase = diametroBase / 2.0;
@@ -15,7 +12,7 @@ function calcularRaioEsfera(diametroBase, alturaCalota) {
 }
 
 // ============================================================================
-// GERADOR ORIGINAL BRAILLE
+// GERADOR ORIGINAL BRAILLE (MANTIDO)
 // ============================================================================
 export function gerarModeloJSCAD(cells, config = {}) {
   if (!cells || cells.length === 0) return null;
@@ -83,67 +80,61 @@ export function gerarModeloJSCAD(cells, config = {}) {
 }
 
 // ============================================================================
-// NOVO: GERADOR PARA BLOCOS IÔNICOS (COM ENCAIXES E TEXTO 3D EXTRUDADO)
+// NOVO: GERADOR PARA BLOCOS IÔNICOS (COM ENCAIXES E TEXTO 3D MELHORADO)
 // ============================================================================
 export function geradorBlocoIonicoJSCAD(params) {
   const {
-    tipo = 'cation',      
-    valencia = 1,         
-    largura = 55.9,       // Largura base (parte sólida)
-    altura = 25.0,        // Altura por carga
-    espessura = 5.0,      
-    larguraEncaixe = 9.1, 
-    alturaEncaixe = 11.0, 
-    formula = "H+",     
+    tipo = 'cation',      // 'cation' | 'anion'
+    valencia = 1,         // 1, 2, 3, 4
+    largura = 55.9,       // Largura base (X)
+    altura = 25.0,        // Altura por carga (Y) -> Altura total = altura * valencia
+    espessura = 5.0,      // Espessura da placa (Z)
+    larguraEncaixe = 9.1, // Largura do pino/rasgo
+    alturaEncaixe = 11.0, // Altura do pino/rasgo
+    formula = "H3O+",     
     espessuraTexto = 1.0, 
     incluirBraille = false,
     cellsBraille = []
   } = params;
 
+  // Altura total varia com a valência (empilhamento)
   const qtdEncaixes = Math.min(Math.max(valencia, 1), 4);
   const alturaTotal = altura * qtdEncaixes;
 
-  let malhaFinal = null;
+  // 1. Cria o bloco base principal
+  let blocoBase = cuboid({ size: [largura, alturaTotal, espessura] });
+  // Posicionamos a base partindo de X=0, Y=0
+  blocoBase = translate([largura / 2, alturaTotal / 2, espessura / 2], blocoBase);
+
+  // 2. Geração dos Encaixes
   const encaixes = [];
-
-  // Lógica Física:
-  // Cátion: A placa base tem largura normal e o pino sai para a direita.
-  // Ânion: A placa base engloba a largura total (largura sólida + a área que será cavada). 
-  if (tipo === 'cation') {
-    let blocoBase = cuboid({ size: [largura, alturaTotal, espessura] });
-    blocoBase = translate([largura / 2, alturaTotal / 2, espessura / 2], blocoBase);
-
-    for (let i = 0; i < qtdEncaixes; i++) {
-      const posY = (i * altura) + (altura / 2);
+  
+  for (let i = 0; i < qtdEncaixes; i++) {
+    // Centro Y de cada "sub-bloco" de carga
+    const posY = (i * altura) + (altura / 2);
+    
+    if (tipo === 'cation') {
+      // Macho: Projeta para fora no lado direito
       let pino = cuboid({ size: [larguraEncaixe, alturaEncaixe, espessura] });
       pino = translate([largura + (larguraEncaixe / 2) - 0.05, posY, espessura / 2], pino);
       encaixes.push(pino);
-    }
-    malhaFinal = union(blocoBase, ...encaixes);
-
-  } else {
-    // Para ânions, a largura visual "disponível" da peça é a mesma da base,
-    // mas a peça final engloba a largura normal + o espaço do pino macho que a preencherá.
-    const larguraTotalAnion = largura + larguraEncaixe;
-    let blocoBase = cuboid({ size: [larguraTotalAnion, alturaTotal, espessura] });
-    blocoBase = translate([larguraTotalAnion / 2, alturaTotal / 2, espessura / 2], blocoBase);
-
-    for (let i = 0; i < qtdEncaixes; i++) {
-      const posY = (i * altura) + (altura / 2);
+    } else {
+      // Fêmea: Subtrai do lado esquerdo. Ganha folga (+0.15mm) para encaixar o macho perfeito.
       let buraco = cuboid({ size: [larguraEncaixe + 0.15, alturaEncaixe + 0.15, espessura + 2] });
       buraco = translate([(larguraEncaixe / 2) - 0.05, posY, espessura / 2], buraco);
       encaixes.push(buraco);
     }
-    malhaFinal = subtract(blocoBase, ...encaixes);
   }
 
-  // 3. Processamento de Texto Vectorial Profissional (Expansão de Paths)
+  let malhaFinal = tipo === 'cation' ? union(blocoBase, ...encaixes) : subtract(blocoBase, ...encaixes);
+
+  // 3. Processamento de Texto Vectorial Robusto
   const parseFormulaVetorial = (str) => {
     const elementos = [];
     let xOffset = 0;
     const escalaNormal = 0.40;
     const escalaPequena = 0.25;
-    const grossuraLinha = 1.3; // Linhas limpas e grossas para o 3D
+    const grossuraLinha = 1.6; // Deixa a fonte gordinha e legível
     const zSize = Math.abs(espessuraTexto);
 
     for (let i = 0; i < str.length; i++) {
@@ -159,17 +150,29 @@ export function geradorBlocoIonicoJSCAD(params) {
 
       let vetorChar = vectorText({ x: 0, y: 0, input: charClean });
       
-      let paths = vetorChar.map(segmento => path2.fromPoints({closed: false}, segmento));
-      let pathsExpandidos = paths.map(p => expand({delta: grossuraLinha/2, corners: 'round', segments: 16}, p));
-      let extrusoes3D = pathsExpandidos.map(p => extrudeLinear({height: zSize}, p));
-      
-      if (extrusoes3D.length > 0) {
-        let letraFinal = union(...extrusoes3D);
-        // Aplica o tamanho e a posição na palavra
-        letraFinal = translate([xOffset, yOffset, 0], scale([escala, escala, 1], letraFinal));
-        elementos.push(letraFinal);
+      let hastesChar = [];
+      vetorChar.forEach(segmento => {
+        const p1 = segmento[0]; const p2 = segmento[1];
+        const dist = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+        const angulo = Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+        
+        // Cuboide rotacionado para formar a linha
+        let haste = cuboid({ size: [dist, grossuraLinha, zSize] });
+        haste = translate([dist/2, 0, 0], haste);
+        haste = rotateZ(angulo, haste);
+        haste = translate([p1[0] * escala + xOffset, p1[1] * escala + yOffset, 0], haste);
+        
+        // Cilindros nas pontas para arredondar cantos e fechar buracos da fonte
+        let junta1 = translate([p1[0] * escala + xOffset, p1[1] * escala + yOffset, 0], cylinder({ radius: grossuraLinha/2, height: zSize, segments: 16 }));
+        let junta2 = translate([p2[0] * escala + xOffset, p2[1] * escala + yOffset, 0], cylinder({ radius: grossuraLinha/2, height: zSize, segments: 16 }));
+
+        hastesChar.push(haste, junta1, junta2);
+      });
+
+      if (hastesChar.length > 0) {
+        elementos.push(union(...hastesChar));
       }
-      xOffset += (isSub || isSup) ? 6.0 : 9.5; 
+      xOffset += (isSub || isSup) ? 6.0 : 9.5; // Espaçamento entre letras
     }
     return { geometria: elementos.length > 0 ? union(...elementos) : null, larguraTotal: xOffset };
   };
@@ -177,20 +180,29 @@ export function geradorBlocoIonicoJSCAD(params) {
   const objTexto = parseFormulaVetorial(formula);
   let geometriaConteudo = [];
 
-  // Centro Visual da área gravável
-  const centroXVisual = tipo === 'anion' ? larguraEncaixe + (largura / 2) : largura / 2;
+  // Centro Visual da peça
+  // Se for ânion, a parte esquerda está cavada, então o centro real da área "escrevível" muda ligeiramente
+  const centroXVisual = tipo === 'anion' ? (largura + larguraEncaixe) / 2 : largura / 2;
   
-  // Alinhamento do Texto
+  let larguraTotalConteudo = objTexto.larguraTotal;
+  let brailleW = 0;
+  
+  if (incluirBraille && cellsBraille.length > 0) {
+    brailleW = cellsBraille.length * 6.0;
+    larguraTotalConteudo = Math.max(larguraTotalConteudo, brailleW);
+  }
+
+  // Alinhamento
   const startX = centroXVisual - (objTexto.larguraTotal / 2);
   const startY = incluirBraille ? (alturaTotal / 2) + 4 : (alturaTotal / 2) - 2;
 
   if (objTexto.geometria) {
-    let zPos = espessuraTexto >= 0 ? espessura : espessura - Math.abs(espessuraTexto);
+    let zPos = espessuraTexto >= 0 ? espessura + (espessuraTexto / 2) : espessura - (Math.abs(espessuraTexto) / 2);
     let textoAlinhado = translate([startX, startY, zPos], objTexto.geometria);
     geometriaConteudo.push(textoAlinhado);
   }
 
-  // 4. Braille Centralizado (Se solicitado)
+  // 4. Adiciona o Braille se requisitado
   if (incluirBraille && cellsBraille.length > 0) {
     const ALTURA_PONTO = 0.75;
     const DIAMETRO_PONTO = 1.8;
@@ -203,12 +215,11 @@ export function geradorBlocoIonicoJSCAD(params) {
     const raioEsfera = calcularRaioEsfera(DIAMETRO_PONTO, ALTURA_PONTO);
     let zOffset = espessuraTexto >= 0 ? espessura - (raioEsfera - ALTURA_PONTO) : espessura - Math.abs(espessuraTexto);
 
-    const brailleRealW = ((cellsBraille.length - 1) * DIST_CELAS) + DIST_PONTOS_X;
-    const brailleStartX = centroXVisual - (brailleRealW / 2);
-    const brailleStartY = (alturaTotal / 2) - 10;
-
     const pontinhos = [];
     let currentXIndex = 0;
+    const brailleStartX = centroXVisual - (brailleW / 2) + 1.25;
+    const brailleStartY = (alturaTotal / 2) - 10;
+
     cellsBraille.forEach(cell => {
       if (cell.dots && cell.dots.length > 0) {
         cell.dots.forEach(num => {
@@ -223,7 +234,7 @@ export function geradorBlocoIonicoJSCAD(params) {
     if (pontinhos.length > 0) geometriaConteudo.push(union(...pontinhos));
   }
 
-  // 5. União ou Cavamento do Texto no Bloco
+  // 5. União ou Subtração com o Bloco principal
   if (geometriaConteudo.length > 0) {
     const malhaConteudo = union(...geometriaConteudo);
     if (espessuraTexto < 0) {
@@ -233,9 +244,9 @@ export function geradorBlocoIonicoJSCAD(params) {
     }
   }
 
-  // Centraliza a malha total
+  // Centraliza o modelo inteiro para o exportador STL ficar no meio da mesa
   let centroY = alturaTotal / 2;
-  let centroX = tipo === 'cation' ? (largura + larguraEncaixe) / 2 : (largura + larguraEncaixe) / 2;
+  let centroX = (largura + (tipo === 'cation' ? larguraEncaixe : 0)) / 2;
   malhaFinal = translate([-centroX, -centroY, 0], malhaFinal);
 
   return malhaFinal;
